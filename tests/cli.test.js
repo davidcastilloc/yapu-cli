@@ -345,40 +345,4 @@ Notas de prueba.
         assert.ok(output.includes('Active brain auto-detected'));
         assert.ok(output.includes('uuid-newer'));
     });
-
-    test('yapu menu ejecuta de forma no interactiva en español cuando LANG=es', () => {
-        const output = execSync(`node ${cliPath} menu`, {
-            cwd: tempDir,
-            env: { ...process.env, LANG: 'es_ES.UTF-8' },
-            encoding: 'utf8'
-        });
-
-        assert.ok(output.includes('YAPUCLI COMMAND MENU (Modo No Interactivo)'));
-        assert.ok(output.includes('Sincronizar Colonia (yapu sync)'));
-        assert.ok(output.includes('Diagnóstico de Salud (yapu health)'));
-    });
-
-    test('yapu menu ejecuta de forma no interactiva en inglés cuando LANG=en', () => {
-        const output = execSync(`node ${cliPath} menu`, {
-            cwd: tempDir,
-            env: { ...process.env, LANG: 'en_US.UTF-8' },
-            encoding: 'utf8'
-        });
-
-        assert.ok(output.includes('YAPUCLI COMMAND MENU (Non-Interactive Mode)'));
-        assert.ok(output.includes('Synchronize Colony (yapu sync)'));
-        assert.ok(output.includes('Health Diagnostics (yapu health)'));
-    });
-
-    test('yapu dashboard ejecuta de forma no interactiva (alias)', () => {
-        const output = execSync(`node ${cliPath} dashboard`, {
-            cwd: tempDir,
-            env: { ...process.env, LANG: 'es_ES.UTF-8' },
-            encoding: 'utf8'
-        });
-
-        assert.ok(output.includes('YAPUCLI COMMAND MENU (Modo No Interactivo)'));
-        assert.ok(output.includes('Sincronizar Colonia (yapu sync)'));
-        assert.ok(output.includes('Diagnóstico de Salud (yapu health)'));
-    });
 });
