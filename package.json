@@ -1,0 +1,19 @@
+{
+  "name": "yapu-cli",
+  "version": "1.0.0",
+  "description": "Un framework de ingeniería de contexto y estructuración de memoria estática para Antigravity CLI. El nido que sostiene a Antigravity en el aire.",
+  "main": "index.js",
+  "bin": {
+    "yapu": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "node --test tests/**/*.test.js",
+    "lint": "eslint ."
+  },
+  "type": "module",
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^10.4.0"
+  }
+}

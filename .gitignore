@@ -1,0 +1,66 @@
+node_modules/
+.DS_Store
+TO-DOS.md
+CLAUDE.md
+/research.claude/
+commands.html
+
+# Local test installs
+.claude/
+
+# Cursor IDE — local agents/skills bundle (never commit)
+.cursor/
+
+# Build artifacts (committed to npm, not git)
+hooks/dist/
+
+# Per-process atomic-write staging dirs (see build scripts)
+hooks/.dist-staging-*/
+
+# Coverage artifacts
+coverage/
+
+# Animation assets
+animation/
+*.gif
+
+# Internal planning documents
+reports/
+RAILROAD_ARCHITECTURE.md
+.planning/
+analysis/
+gaps.md
+improve.md
+philosophy.md
+
+# Installed skills and custom agents
+.github/agents/tether-*
+.github/skills/tether-*
+.github/copilot-instructions.md
+.bg-shell/
+
+# System Baselines
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.code-workspace
+.env
+.env.*
+!.env.example
+.next/
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+target/
+vendor/
+*.log
+.cache/
+tmp/
+.worktrees
+.envrc

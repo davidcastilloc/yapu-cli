@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Pre-commit hook for YapuCli.
+# Ensures no legacy references are added to new or modified staged files.
+
+staged_files=$(git diff --cached --name-only)
+
+if [[ -z "$staged_files" ]]; then
+  exit 0
+fi
+
+violations=()
+
+# Decode terms dynamically to avoid literal strings in this hook file
+term_legacy_full=$(echo "Z2V0LXNoaXQtZG9uZQ==" | base64 -d)
+term_legacy_short=$(echo "Z3Nk" | base64 -d)
+term_legacy_dir=$(echo "Z2V0LXNoaXQtZG9uZS8=" | base64 -d)
+
+for file in $staged_files; do
+  # Skip legacy folder and third-party files
+  if [[ "$file" =~ ^$term_legacy_dir ]] || [[ "$file" =~ ^node_modules/ ]] || [[ "$file" =~ ^\.git/ ]] || [[ "$file" =~ ^\.changeset/ ]]; then
+    continue
+  fi
+
+  if [[ -f "$file" ]]; then
+    if grep -Eiq "$term_legacy_full|$term_legacy_short" "$file"; then
+      violations+=("$file")
+    fi
+  fi
+done
+
+if [[ ${#violations[@]} -gt 0 ]]; then
+  echo -e "\n❌ [Yapu Guard] Commit bloqueado: Se detectaron referencias heredadas prohibidas en los siguientes archivos:" >&2
+  for file in "${violations[@]}"; do
+    echo "  - $file" >&2
+  done
+  echo -e "\nPor favor limpia estas referencias antes de realizar el commit.\n" >&2
+  exit 1
+fi
