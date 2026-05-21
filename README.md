@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="yapu-banner.png" alt="YapuCli — Context Engineering Framework" width="600">
+</p>
+
 # YapuCli 🪺
 
 **Framework de ingeniería de contexto y memoria estática para Antigravity CLI.**
