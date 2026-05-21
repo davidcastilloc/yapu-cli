@@ -17,5 +17,10 @@ This document defines the development life cycle of **Yapu** in isolated phases.
   - Design specialized workflows (`yapu-secops.md`, `yapu-dba.md`, `yapu-ui.md`).
   - Design the detective forensics mode (`yapu-forensics.md`).
   - Implement the `yapu archive` and `yapu install-hooks` commands in the CLI.
-- [ ] **Phase 5: Workspace Check and Diagnostics Tool**
+- [x] **Phase 5: Workspace Check and Diagnostics Tool**
   - Design the `yapu check` command to verify if a workspace has an intact memory triad and is free from prohibited references.
+- [ ] **Phase 6: Autonomous Agents & Resiliency**
+  - [x] Implement `yapu dash` for a zero-dependency TUI dashboard.
+  - [x] Implement `yapu gc` to condense old contextual phases into LORE.md.
+  - [x] Implement `yapu rescue` for Auto-Healing in CI/CD pipelines.
+  - [x] Implement `yapu-chaos.md` for Autonomous Resilience Engineering.

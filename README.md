@@ -22,7 +22,11 @@ Directly connected to the Antigravity brain.
 npm install -g yapu-cli
 ```
 
-**Zero dependencies** — only `node:fs` and `node:path`.
+**Zero dependencies** — only `node:fs` y `node:path`.
+
+🤖 **Are you an AI (or do you use one)?** Load the [LLM Installer Prompt](docs/LLM_INSTALLER.md) into your agent so it automatically installs, configures, and assimilates the Yapu rules.
+
+💡 **Do you code with AI?** Read the [Vibe Coder Workflow Guide](docs/WORKFLOW.md) to learn how to integrate Yapu into your daily routine with Cursor/Cline/Windsurf.
 
 ---
 
@@ -57,28 +61,42 @@ The Antigravity brain is **ephemeral** (per conversation). The `.planning/` dire
 
 ---
 
-## 🛠️ CLI Commands (7)
+## 🛠️ CLI Commands (10)
 
 ```bash
-yapu init              # 🪺 Found the colony (.planning/ + complete skills)
-yapu status            # 📊 Project x-ray / health check
-yapu archive           # 📦 End of season (freezes tasks into HISTORY.md)
-yapu install-hooks     # 🐝 Deploy the swarm (Yapu Guard)
-yapu sync              # 🔄 Sync Antigravity brain → .planning/
-yapu handoff           # 🤝 Generate handoff for the next session
-yapu brain <list|log>  # 🔍 Inspect the Antigravity brain
+yapu init              # 🪺 Founds the colony (.planning/ + complete skills)
+yapu status            # 📊 Project radiograph
+yapu dash              # 📟 Real-time TUI dashboard (Zero-dependency)
+yapu gc                # 🗑️ Contextual Garbage Collector (condenses history)
+yapu rescue <log>      # 🚑 Auto-Heal: reads a CI/CD error log and prepares a fix
+yapu archive           # 📦 Season finale (freezes tasks into HISTORY.md)
+yapu install-hooks     # 🐝 Deploys the hornet's nest (Yapu Guard)
+yapu sync              # 🔄 Syncs Antigravity brain → .planning/
+yapu handoff           # 🤝 Generates handoff for the next session
+yapu brain <list|log>  # 🔍 Inspects the Antigravity brain
 ```
 
 ### Command Details
 
-- **`yapu init`** — Scaffolds `.planning/` with 11 subdirectories + 5 base files. Copies 41 workflows, 25 references, 3 contexts, and 5 codebase templates to `.agents/skills/`. Also copies `PROJECT.md`, `ROADMAP.md`, and `STATE.md` to the project root. Never overwrites existing files.
-- **`yapu status`** — Reads `STATE.md` and reports the operational mode, active phase, task checklist, and spec integrity.
-- **`yapu archive`** — Freezes completed tasks from `STATE.md` into `HISTORY.md` with timestamps.
-- **`yapu install-hooks`** — Deploys **Yapu Guard**, an ultra-fast (<1.5s) native pre-commit hook.
-- **`yapu sync --brain-path <path>`** — Manual fallback: synchronizes artifacts from the Antigravity brain to `.planning/`.
-- **`yapu handoff`** — Generates `HANDOFF.json` + `.continue-here.md` for seamless session continuity.
-- **`yapu brain list --path <path>`** — Lists brain artifacts along with their type, summary, and date.
+- **`yapu init`** — Scaffolds `.planning/` with 11 subdirectories + 5 base files. Copies 41 workflows, 25 references, 3 contexts, and 5 codebase templates to `.agents/skills/`. It also copies `PROJECT.md`, `ROADMAP.md` and `STATE.md` to the project root. Never overwrites existing files.
+- **`yapu status`** — Reads `STATE.md` and reports operational mode, active phase, task list, and spec integrity.
+- **`yapu dash`** — Renders an interactive TUI monitor at 60FPS reading `ROADMAP.md` and AI logs (Zero dependencies).
+- **`yapu gc`** — Archives old phases from `.planning/phases/` and prepares token compression (Contextual Garbage Collector).
+- **`yapu rescue <log>`** — Instantly creates an Auto-Heal debugging session and instructions for your AI based on an error log.
+- **`yapu archive`** — Freezes completed tasks from `STATE.md` into `HISTORY.md` with a timestamp.
+- **`yapu install-hooks`** — Deploys **Yapu Guard**, an ultra-fast native pre-commit hook (<1.5s).
+- **`yapu sync --brain-path <path>`** — Manual fallback: syncs artifacts from the Antigravity brain to `.planning/`.
+- **`yapu handoff`** — Generates `HANDOFF.json` + `.continue-here.md` for session continuity.
+- **`yapu brain list --path <path>`** — Lists brain artifacts by type, summary, and date.
 - **`yapu brain log --path <path> -n N`** — Displays the last N entries of the conversation log.
+
+---
+
+## ⚡ Included Autonomous Agent Workflows
+Beyond organization, YapuCli installs advanced templates (`.agents/skills/`) so your AI can act as a complete engineering team:
+- **LORE_MASTER**: Condenses thousands of context tokens into a single ultra-dense `LORE.md`.
+- **PRODUCTION GUARDIAN**: Auto-Heal workflow triggered via `yapu rescue` in CI/CD pipelines.
+- **CHAOS MONKEY (`yapu-chaos.md`)**: Autonomous Resilience Engineering. Command your AI to execute this mode to inject latency and break dependencies intentionally, then repair the architecture to achieve Graceful Degradation.
 
 ---
 

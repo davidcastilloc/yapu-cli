@@ -397,4 +397,46 @@ Notas de prueba.
         assert.ok(statusOutput.includes('[ OPR MODE  ] :'));
         assert.ok(statusOutput.includes('[ PHASE     ] :'));
     });
+
+    test('yapu check detecta anti-patrones en la memoria', () => {
+        const testDirCheck = path.join(tempDir, 'yapu-check-test');
+        fs.mkdirSync(testDirCheck, { recursive: true });
+
+        // Initialize normally
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirCheck,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        // 1. Inject an anti-pattern in PROJECT.md
+        const projectPath = path.join(testDirCheck, 'PROJECT.md');
+        let projectContent = fs.readFileSync(projectPath, 'utf8');
+        projectContent += '\n## Nueva Sección\nAquí hay un TODO pendiente.\n';
+        fs.writeFileSync(projectPath, projectContent, 'utf8');
+
+        // 2. Inject an empty tasks anti-pattern in STATE.md
+        const statePath = path.join(testDirCheck, 'STATE.md');
+        const stateContent = `# ESTADO ACTUAL
+
+**FASE ACTIVA:** Fase de Diseño
+
+## Tareas de la Fase Actual
+No hay tareas definidas.
+
+## Contexto
+Blabla`;
+        fs.writeFileSync(statePath, stateContent, 'utf8');
+
+        // Run yapu check
+        const output = execSync(`node ${cliPath} check 2>&1`, {
+            cwd: testDirCheck,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(output.includes('YAPU (FASE 5)'), 'Should print diagnostics header');
+        assert.ok(output.includes('Anti-patrón detectado: Placeholder sin resolver'), 'Should detect TODO');
+        assert.ok(output.includes('Anti-patrón detectado: No hay tareas activas'), 'Should detect empty tasks');
+    });
 });

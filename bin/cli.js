@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { t, getLanguage } from '../lib/i18n.js';
@@ -57,6 +58,13 @@ if (command === 'init') {
     console.log(t('init_dir_scaffolded'));
 
     // .planning/ files from templates (skip if exists)
+    /**
+     * Copies a file if it doesn't already exist at the destination.
+     * @param {string} src - Source file path.
+     * @param {string} dest - Destination file path.
+     * @param {string} label - Display label for logging.
+     * @returns {boolean} True if copied, false if skipped.
+     */
     const copyIfMissing = (src, dest, label) => {
         if (!fs.existsSync(dest)) {
             if (fs.existsSync(src)) {
@@ -70,6 +78,12 @@ if (command === 'init') {
         }
     };
 
+    /**
+     * Writes content to a file if it doesn't already exist.
+     * @param {string} dest - Destination file path.
+     * @param {string} content - String content to write.
+     * @param {string} label - Display label for logging.
+     */
     const writeIfMissing = (dest, content, label) => {
         if (!fs.existsSync(dest)) {
             fs.writeFileSync(dest, content, 'utf8');
@@ -133,6 +147,26 @@ if (command === 'init') {
             console.log(t('init_file_skipped', { label: `Memoria: ${file}` }));
         }
     });
+
+    // ── Inyección de Memoria Global (Hive Mind) ──────────────────────
+    const globalPatternsPath = path.join(os.homedir(), '.yapu', 'global-patterns.md');
+    const targetProjectMd = path.join(targetDir, 'PROJECT.md');
+    
+    if (fs.existsSync(globalPatternsPath) && fs.existsSync(targetProjectMd)) {
+        console.log('🧠 Inyectando memoria global desde proyectos anteriores...');
+        const globalPatterns = fs.readFileSync(globalPatternsPath, 'utf8');
+        let projectMdContent = fs.readFileSync(targetProjectMd, 'utf8');
+        
+        // Evitar inyectar múltiples veces si ya existe
+        if (!projectMdContent.includes('## 🧠 Mandamientos Globales (Aprendidos)')) {
+            projectMdContent += '\n## 🧠 Mandamientos Globales (Aprendidos)\n';
+            projectMdContent += '> Estas reglas fueron aprendidas por Yapu en proyectos anteriores y son de cumplimiento obligatorio.\n\n';
+            projectMdContent += globalPatterns + '\n';
+            
+            fs.writeFileSync(targetProjectMd, projectMdContent, 'utf8');
+            console.log('✅ Mandamientos globales inyectados en PROJECT.md.');
+        }
+    }
 
     // ── 3. Create .agents/skills/ ──────────────────────────────────────
     if (!fs.existsSync(skillsDir)) {
@@ -393,6 +427,12 @@ if (command === 'init') {
     let errorsCount = 0;
     let warningsCount = 0;
 
+    /**
+     * Prints a standardized check result.
+     * @param {boolean} ok - True if successful, false otherwise.
+     * @param {string} message - Result description.
+     * @param {boolean} [errorIfFailed=true] - If false, treats failures as warnings.
+     */
     const printResult = (ok, message, errorIfFailed = true) => {
         if (ok) {
             console.log(`  ✅ ${message}`);
@@ -524,6 +564,63 @@ if (command === 'init') {
         console.log(t('health_unhealthy', { errors: errorsCount, warnings: warningsCount }));
         console.log(t('health_repair_tip'));
         process.exit(1);
+    }
+} else if (command === 'check') {
+    console.log(t('check_title'));
+    console.log(t('check_reading'));
+
+    const projectPath = path.join(targetDir, '.planning', 'PROJECT.md');
+    const statePath = path.join(targetDir, '.planning', 'STATE.md');
+    
+    // Check backwards compatibility paths
+    const finalProjectPath = fs.existsSync(projectPath) ? projectPath : path.join(targetDir, 'PROJECT.md');
+    const finalStatePath = fs.existsSync(statePath) ? statePath : path.join(targetDir, 'STATE.md');
+
+    if (!fs.existsSync(finalProjectPath) || !fs.existsSync(finalStatePath)) {
+        console.error(t('check_no_files'));
+        process.exit(1);
+    }
+
+    let antiPatterns = 0;
+    
+    const projectContent = fs.readFileSync(finalProjectPath, 'utf8');
+    const stateContent = fs.readFileSync(finalStatePath, 'utf8');
+
+    // 1. Check for unresolved placeholders
+    const placeholderRegex = /\[Insert[^\]]*\]|TBD|TODO(?!\s*\()/gi;
+    const lines = projectContent.split('\n');
+    lines.forEach((line, index) => {
+        if (placeholderRegex.test(line)) {
+            console.warn(t('check_warn_placeholder', { file: 'PROJECT.md', line: index + 1 }));
+            antiPatterns++;
+        }
+    });
+
+    // 2. Check for empty tasks in STATE.md
+    const tasksMatch = stateContent.match(/\[ TASKS \]:[\s\S]*?(?=\[ SPECS \]|=================================|$)/i);
+    if (!tasksMatch || tasksMatch[0].includes('No hay tareas') || tasksMatch[0].includes('No tasks')) {
+        const hasTaskLines = stateContent.split('\n').some(l => l.trim().startsWith('- [ ]') || l.trim().startsWith('- [x]'));
+        if (!hasTaskLines) {
+            console.warn(t('check_warn_empty_tasks', { file: 'STATE.md' }));
+            antiPatterns++;
+        }
+    }
+
+    // 3. Phase contradiction (Optional: could match PROJECT vs STATE)
+    const activePhaseMatch = stateContent.match(/\*\*FASE ACTIVA:\*\*\s*(.+)/i) || stateContent.match(/\*\*ACTIVE PHASE:\*\*\s*(.+)/i);
+    const statePhase = activePhaseMatch ? activePhaseMatch[1].trim().toLowerCase() : '';
+    if (statePhase && statePhase.includes('unknown') || statePhase.includes('desconocida')) {
+        console.warn(t('check_warn_contradiction'));
+        antiPatterns++;
+    }
+
+    console.log('');
+    if (antiPatterns === 0) {
+        console.log(t('check_success'));
+        process.exit(0);
+    } else {
+        console.error(t('check_summary', { count: antiPatterns }));
+        process.exit(0); // Exit 0 for warnings by default
     }
 } else if (command === 'sync') {
     // ── yapu sync --brain-path {path} ──────────────────────────────────
@@ -688,12 +785,148 @@ if (command === 'init') {
         console.error(t('brain_unrecognized'));
         process.exit(1);
     }
+} else if (command === 'dash') {
+    console.log(t('dash_start'));
+    import('../lib/dashboard.js')
+        .then(({ startDashboard }) => {
+            startDashboard(targetDir, activeLang);
+        })
+        .catch(err => {
+            console.error('Error loading dashboard:', err);
+            process.exit(1);
+        });
+} else if (command === 'gc') {
+    console.log(t('gc_start'));
+
+    const planningDir = path.join(targetDir, '.planning');
+    const phasesDir = path.join(planningDir, 'phases');
+    const archiveDir = path.join(planningDir, 'archive');
+
+    if (!fs.existsSync(planningDir)) {
+        console.error(t('dash_no_planning'));
+        process.exit(1);
+    }
+
+    let phaseFiles = [];
+    if (fs.existsSync(phasesDir)) {
+        phaseFiles = fs.readdirSync(phasesDir).filter(f => f.endsWith('.md'));
+    }
+
+    if (phaseFiles.length === 0) {
+        console.log(t('gc_no_phases'));
+        process.exit(0);
+    }
+
+    let masterContext = '';
+    phaseFiles.forEach(f => {
+        const p = path.join(phasesDir, f);
+        masterContext += `\n\n# FILE: phases/${f}\n\n`;
+        masterContext += fs.readFileSync(p, 'utf8');
+    });
+
+    const contextPath = path.join(planningDir, 'context-to-compress.md');
+    fs.writeFileSync(contextPath, masterContext, 'utf8');
+
+    if (!fs.existsSync(archiveDir)) {
+        fs.mkdirSync(archiveDir, { recursive: true });
+    }
+    const timestampDir = path.join(archiveDir, new Date().toISOString().replace(/:/g, '-').split('.')[0]);
+    fs.mkdirSync(timestampDir, { recursive: true });
+
+    phaseFiles.forEach(f => {
+        fs.renameSync(path.join(phasesDir, f), path.join(timestampDir, f));
+    });
+    console.log(t('gc_archived', { path: timestampDir }));
+
+    const loreSrc = path.join(templatesDir, 'yapu-lore-master.md');
+    const tasksDir = path.join(planningDir, 'tasks');
+    if (!fs.existsSync(tasksDir)) {
+        fs.mkdirSync(tasksDir, { recursive: true });
+    }
+    const loreDest = path.join(tasksDir, 'LORE_MASTER.md');
+
+    if (fs.existsSync(loreSrc)) {
+        fs.copyFileSync(loreSrc, loreDest);
+        console.log(t('gc_prompt_generated', { path: loreDest }));
+    } else {
+        console.warn('⚠️  Warning: Template yapu-lore-master.md not found.');
+    }
+} else if (command === 'rescue') {
+    console.log(t('rescue_start'));
+    const logFile = cleanArgs[1];
+    
+    if (!logFile) {
+        console.error(t('rescue_no_log'));
+        process.exit(1);
+    }
+
+    const logPath = path.resolve(targetDir, logFile);
+    if (!fs.existsSync(logPath)) {
+        console.error(`❌ Error: File not found: ${logPath}`);
+        process.exit(1);
+    }
+
+    const logContent = fs.readFileSync(logPath, 'utf8');
+
+    const planningDir = path.join(targetDir, '.planning');
+    const debugDir = path.join(planningDir, 'debug');
+    if (!fs.existsSync(debugDir)) {
+        fs.mkdirSync(debugDir, { recursive: true });
+    }
+
+    const timestamp = new Date().toISOString().replace(/:/g, '-').split('.')[0];
+    const rescueTaskPath = path.join(debugDir, `RESCUE_${timestamp}.md`);
+
+    const rescuePrompt = activeLang === 'es' ?
+`# GUARDIÁN DE PRODUCCIÓN: Auto-Heal (Rescue)
+
+Un fallo en CI/CD ha sido detectado. El archivo de log de error ha sido inyectado abajo.
+
+## Tu Tarea
+1. Analiza el log de error de CI/CD.
+2. Formula una hipótesis de por qué fallaron los tests o el build.
+3. Modifica el código fuente localmente para solucionar el error.
+4. Ejecuta las pruebas localmente usando comandos de terminal para validar tu solución.
+5. Haz un reporte rápido de qué cambiaste.
+
+## Log de Error
+\`\`\`
+${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
+\`\`\`
+
+**[ INICIAR ]**: Comienza inmediatamente el análisis y soluciona el problema.
+` : 
+`# PRODUCTION GUARDIAN: Auto-Heal (Rescue)
+
+A CI/CD failure has been detected. The error log file has been injected below.
+
+## Your Task
+1. Analyze the CI/CD error log.
+2. Formulate a hypothesis for why the tests or build failed.
+3. Modify the source code locally to fix the error.
+4. Run tests locally using terminal commands to validate your solution.
+5. Provide a quick report of what you changed.
+
+## Error Log
+\`\`\`
+${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
+\`\`\`
+
+**[ START ]**: Begin analysis immediately and fix the issue.
+`;
+
+    fs.writeFileSync(rescueTaskPath, rescuePrompt, 'utf8');
+    console.log(t('rescue_session_created', { path: rescueTaskPath }));
 } else {
     console.log(t('help_title'));
     console.log(t('help_usage'));
     console.log(t('help_init'));
     console.log(t('help_status'));
+    console.log(t('help_dash'));
+    console.log(t('help_gc'));
+    console.log(t('help_rescue'));
     console.log(t('help_health'));
+    console.log(t('help_check'));
     console.log(t('help_archive'));
     console.log(t('help_install_hooks'));
     console.log(t('help_sync'));

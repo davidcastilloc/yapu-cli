@@ -19,3 +19,8 @@ Este documento define el ciclo de vida del desarrollo de **Yapu** en fases aisla
   - Implementar los comandos `yapu archive` y `yapu install-hooks` en el CLI.
 - [ ] **Fase 5: Herramienta de Chequeo y Diagnóstico**
   - Diseñar el comando `yapu check` para verificar si un espacio de trabajo tiene una tríada de memoria íntegra y sin referencias prohibidas.
+- [ ] **Fase 6: Agentes Autónomos y Resiliencia**
+  - [x] Implementar `yapu dash` para un dashboard TUI sin dependencias.
+  - [x] Implementar `yapu gc` para condensar fases contextuales antiguas en LORE.md.
+  - [x] Implementar `yapu rescue` para Auto-Heal en pipelines CI/CD.
+  - [x] Implementar `yapu-chaos.md` para Ingeniería de Resiliencia Autónoma.

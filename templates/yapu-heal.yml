@@ -1,0 +1,42 @@
+name: Yapu Production Guardian (Auto-Heal)
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build_and_test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        id: run_tests
+        run: npm test 2> error.log
+        continue-on-error: true
+
+      - name: Trigger Yapu Auto-Heal
+        if: steps.run_tests.outcome == 'failure'
+        run: |
+          echo "Tests failed! Triggering Yapu Rescue..."
+          npx yapu-cli rescue ./error.log
+          # Note: The AI agent (Antigravity) needs to be configured in the CI environment
+          # to automatically consume the generated .planning/debug/RESCUE_*.md file
+          # and push the commit. This is a placeholder for the automated agent trigger.
+          
+      - name: Fail Pipeline if Tests Failed
+        if: steps.run_tests.outcome == 'failure'
+        run: exit 1

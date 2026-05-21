@@ -158,7 +158,8 @@ When LEARNINGS.md from multiple phases (≥3) exist, search for recurrent items 
 | Recurrent **Decisions** | `PROJECT.md` → `## Validated Decisions` |
 | Recurrent **Patterns** | `PATTERNS.md` → appropriate section |
 | Recurrent **Lessons** | `PROJECT.md` → `## Invariants` |
-| Recurrent **Surprises** | ⚠️ Flag for human review — if it surprises 3+ times, something structural is wrong |
+| Recurrent **Surprises** | ⚠️ Flag for human review |
+| **UNIVERSAL Lessons** | `~/.yapu/global-patterns.md` (Patterns that apply to ALL future projects) |
 
 ### Confirmation Gate
 
@@ -172,6 +173,9 @@ When LEARNINGS.md from multiple phases (≥3) exist, search for recurrent items 
   
   2. [DECISION] "Validation at boundary, not in model"
      Appears in phases 1, 3, 5 — Suggest: PROJECT.md
+
+  3. [UNIVERSAL] "Never store secrets in .env without adding them to .gitignore"
+     Appears in phases 1 and 4 — Suggest: ~/.yapu/global-patterns.md
 
 Promote? [All] / [Select] / [Defer] / [Discard]
 ```

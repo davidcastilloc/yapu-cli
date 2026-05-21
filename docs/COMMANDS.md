@@ -205,7 +205,41 @@ yapu health
 
 ---
 
-## 6. `yapu sync`
+## 6. `yapu check`
+
+Scans the workspace memory for anti-patterns and contradictions (Phase 5 diagnostics).
+
+### Usage
+
+```bash
+yapu check
+```
+
+### Behavior
+
+- Reads `.planning/PROJECT.md` and `.planning/STATE.md`.
+- Analyzes content for common anti-patterns such as:
+  - **Unresolved placeholders**: `TBD`, `TODO`, `[Insert...]` in Core Value or descriptions.
+  - **Empty Tasks**: Flags if the active phase lacks defined technical tasks.
+  - **Contradictions**: Flags if the declared active phase is unknown or undefined.
+- Prints a diagnostic report with warnings for each anti-pattern found.
+- Returns exit code `0` even if warnings are found (acts as an advisory tool).
+
+### Example Output
+
+```
+=== 🪺 YAPU WORKSPACE DIAGNOSTICS (PHASE 5) ===
+
+[+] Scanning memory triad for anti-patterns...
+⚠️  Anti-pattern detected: Unresolved placeholder (TBD, TODO, [Insert...]) in PROJECT.md (line 14)
+⚠️  Anti-pattern detected: No active tasks defined in STATE.md
+
+❌ Diagnostics complete: 2 anti-pattern(s) detected.
+```
+
+---
+
+## 7. `yapu sync`
 
 Syncs artifacts from an Antigravity brain directory to the project.
 
@@ -253,7 +287,7 @@ yapu sync [--brain-path <path>]
 
 ---
 
-## 7. `yapu handoff`
+## 8. `yapu handoff`
 
 Generates handoff files to continue the work in another session or context.
 
@@ -294,13 +328,13 @@ yapu handoff [--brain-path <path>]
 
 ---
 
-## 8. `yapu brain`
+## 9. `yapu brain`
 
 Inspects the content of an Antigravity brain directory. It has two subcommands: `list` and `log`.
 
 ---
 
-### 8.1 `yapu brain list`
+### 9.1 `yapu brain list`
 
 Lists the artifacts stored in a brain directory.
 
@@ -353,7 +387,7 @@ yapu brain list [--path <path>]
 
 ---
 
-### 8.2 `yapu brain log`
+### 9.2 `yapu brain log`
 
 Displays recent conversation log entries.
 
@@ -411,6 +445,7 @@ Usage:
   yapu init              -> Founds the colony (.planning/ + complete skills).
   yapu status            -> Radiography of the project.
   yapu health            -> Validates workspace integrity.
+  yapu check             -> Diagnostics: scans memory for anti-patterns (Phase 5).
   yapu archive           -> End of season (freezes tasks in HISTORY.md).
   yapu install-hooks     -> Deploys the hornet's nest (Yapu Guard).
   yapu sync              -> Syncs Antigravity brain → .planning/ (auto-detected).

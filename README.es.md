@@ -24,6 +24,10 @@ npm install -g yapu-cli
 
 **Zero dependencies** — solo `node:fs` y `node:path`.
 
+🤖 **¿Eres una IA (o usas una)?** Carga el [Prompt Instalador para LLMs](docs/LLM_INSTALLER.es.md) en tu agente para que instale, configure y asimile las reglas de Yapu automáticamente.
+
+💡 **¿Quieres conocer el flujo de trabajo?** Lee la [Guía de Flujo de Trabajo para Vibe Coders](docs/WORKFLOW.es.md) para aprender a integrar Yapu en tu día a día con Cursor/Cline/Windsurf.
+
 ---
 
 ## 🧠 Memoria Dual — La Arquitectura Central
@@ -57,11 +61,14 @@ El brain de Antigravity es **efímero** (por conversación). El directorio `.pla
 
 ---
 
-## 🛠️ Comandos del CLI (7)
+## 🛠️ Comandos del CLI (10)
 
 ```bash
 yapu init              # 🪺 Funda la colonia (.planning/ + skills completos)
 yapu status            # 📊 Radiografía del proyecto
+yapu dash              # 📟 Monitor TUI en tiempo real (Zero-dependency)
+yapu gc                # 🗑️ Recolector de basura contextual (comprime historial)
+yapu rescue <log>      # 🚑 Auto-Heal: lee un error de CI/CD y prepara un fix
 yapu archive           # 📦 Fin de temporada (congela tareas en HISTORY.md)
 yapu install-hooks     # 🐝 Despliega el avispero (Yapu Guard)
 yapu sync              # 🔄 Sincroniza brain de Antigravity → .planning/
@@ -73,12 +80,23 @@ yapu brain <list|log>  # 🔍 Inspecciona el brain de Antigravity
 
 - **`yapu init`** — Scaffolds `.planning/` con 11 subdirectorios + 5 archivos base. Copia 41 workflows, 25 referencias, 3 contextos y 5 plantillas de codebase a `.agents/skills/`. También copia `PROJECT.md`, `ROADMAP.md` y `STATE.md` a la raíz del proyecto. Nunca sobreescribe archivos existentes.
 - **`yapu status`** — Lee `STATE.md` y reporta modo operacional, fase activa, lista de tareas e integridad de specs.
+- **`yapu dash`** — Renderiza un monitor interactivo TUI a 60FPS leyendo el `ROADMAP.md` y los logs de la IA (Sin dependencias).
+- **`yapu gc`** — Archiva fases antiguas de `.planning/phases/` y prepara la compresión de tokens (Contextual Garbage Collector).
+- **`yapu rescue <log>`** — Crea instantáneamente una sesión de depuración e instrucción de Auto-Heal para tu IA basada en un log de error.
 - **`yapu archive`** — Congela tareas completadas de `STATE.md` en `HISTORY.md` con marca de tiempo.
 - **`yapu install-hooks`** — Despliega **Yapu Guard**, hook pre-commit nativo ultrarrápido (<1.5s).
 - **`yapu sync --brain-path <path>`** — Fallback manual: sincroniza artefactos del brain de Antigravity a `.planning/`.
 - **`yapu handoff`** — Genera `HANDOFF.json` + `.continue-here.md` para continuidad de sesión.
 - **`yapu brain list --path <path>`** — Lista artefactos del brain con tipo, resumen y fecha.
 - **`yapu brain log --path <path> -n N`** — Muestra las últimas N entradas del log de conversación.
+
+---
+
+## ⚡ Flujos de Agentes Autónomos Incluidos
+Además de la organización, YapuCli instala plantillas avanzadas (`.agents/skills/`) para que tu IA trabaje como un equipo completo:
+- **LORE_MASTER**: Condensa miles de tokens de contexto en un solo `LORE.md` ultradenso.
+- **GUARDIÁN DE PRODUCCIÓN**: Workflow de Auto-Heal que se acciona mediante `yapu rescue` en CI/CD.
+- **CHAOS MONKEY (`yapu-chaos.md`)**: Ingeniería de Resiliencia Autónoma. Ordénale a tu IA ejecutar este modo para que inyecte latencia y rompa dependencias intencionalmente, y luego repare la arquitectura para lograr una degradación elegante (Graceful Degradation).
 
 ---
 
