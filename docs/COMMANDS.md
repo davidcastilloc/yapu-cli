@@ -1,176 +1,176 @@
-# Referencia de Comandos - YapuCli 🪺
+# Command Reference - YapuCli 🪺
 
-Documentación completa de todos los comandos disponibles en YapuCli.
+Complete documentation of all available commands in YapuCli.
 
 ---
 
 ## 1. `yapu init`
 
-Inicializa la estructura de planificación del proyecto.
+Initializes the project planning structure.
 
-### Uso
+### Usage
 
 ```bash
 yapu init
 ```
 
-### Comportamiento
+### Behavior
 
-- Crea el directorio `.planning/` con **11 subdirectorios**:
+- Creates the `.planning/` directory with **11 subdirectories**:
   - `codebase`, `phases`, `debug`, `debug/resolved`, `seeds`, `notes`, `todos`, `research`, `quick`, `spikes`
-- Genera archivos base desde plantillas:
+- Generates base files from templates:
   - `.planning/STATE.md`
   - `.planning/ROADMAP.md`
   - `.planning/config.json`
-- Crea archivos con encabezados iniciales:
+- Creates files with initial headers:
   - `.planning/REQUIREMENTS.md`
   - `.planning/METHODOLOGY.md`
-- Copia `PROJECT.md`, `ROADMAP.md` y `STATE.md` a la raíz del proyecto (compatibilidad hacia atrás).
-- Copia dinámicamente **todos** los workflows `yapu-*.md` a `.agents/skills/`.
-- Copia referencias a `.agents/skills/references/`.
-- Copia contextos a `.agents/skills/contexts/`.
-- Copia plantillas de codebase a `.agents/skills/codebase/`.
-- **Nunca sobrescribe archivos existentes.**
+- Copies `PROJECT.md`, `ROADMAP.md`, and `STATE.md` to the project root (backward compatibility).
+- Dynamically copies **all** workflow files `yapu-*.md` to `.agents/skills/`.
+- Copies references to `.agents/skills/references/`.
+- Copies contexts to `.agents/skills/contexts/`.
+- Copies codebase templates to `.agents/skills/codebase/`.
+- **Never overwrites existing files.**
 
-### Ejemplo de salida
+### Example Output
 
 ```
-🪺 YapuCli - Inicializando proyecto...
+🪺 Initializing YapuCli...
 
-✅ Estructura .planning/ creada
-✅ Archivos base generados (STATE.md, ROADMAP.md, config.json)
-✅ 12 workflows copiados a .agents/skills/
-✅ 3 referencias copiadas a .agents/skills/references/
-✅ 2 contextos copiados a .agents/skills/contexts/
-✅ 4 plantillas de codebase copiadas a .agents/skills/codebase/
-✅ Archivos raíz copiados (PROJECT.md, ROADMAP.md, STATE.md)
+✅ .planning/ directory scaffolded.
+✅ STATE.md initialized.
+✅ ROADMAP.md initialized.
+✅ config.json initialized.
+✅ REQUIREMENTS.md initialized.
+✅ METHODOLOGY.md initialized.
+✅ Memoria: PROJECT.md inicializada.
+✅ Memoria: ROADMAP.md inicializada.
+✅ Memoria: STATE.md inicializada.
+✅ Directorio .agents/skills/ creado.
 
-🎉 Proyecto inicializado correctamente.
+🪺 Deploying complete arsenal of fibers...
+🔥 10 workflows loaded in .agents/skills/
 ```
 
 ---
 
 ## 2. `yapu status`
 
-Muestra el estado actual del proyecto leyendo los archivos de planificación.
+Displays the current project status by reading the planning files.
 
-### Uso
+### Usage
 
 ```bash
 yapu status
 ```
 
-### Comportamiento
+### Behavior
 
-- Lee `STATE.md` desde la raíz del proyecto.
-- Extrae y muestra:
-  - **Modo operacional** actual.
-  - **Fase activa** del proyecto.
-  - **Lista de tareas** pendientes y completadas.
-- Verifica la integridad de `PROJECT.md` y `ROADMAP.md`, mostrando `OK` o `MISSING` para cada uno.
-- **Error**: Si `STATE.md` no se encuentra, el comando falla con un mensaje de error.
+- Reads `STATE.md` from the project root.
+- Extracts and displays:
+  - Current **operational mode**.
+  - Active **phase** of the project.
+  - **Task list** (pending and completed).
+- Verifies the integrity of `PROJECT.md` and `ROADMAP.md`, showing `OK` or `MISSING` for each.
+- **Error**: If `STATE.md` is not found, the command fails with an error message.
 
-### Ejemplo de salida
+### Example Output
 
 ```
-🪺 YapuCli - Estado del Proyecto
+=== 🪺 YAPU SYSTEM STATUS ===
 
-📋 Modo operacional: BUILD
-📍 Fase activa: Fase 2 - Implementación Core
+[ OPR MODE  ] : FORENSICS
+[ PHASE     ] : Phase 2 - Core Implementation
+---------------------------------
+[ TASKS     ] :
+  [x] Setup base structure
+  [ ] Implement sync command
+  [ ] Write unit tests
+---------------------------------
+[ SPECS     ] : PROJECT.md (OK) | ROADMAP.md (OK)
 
-📝 Tareas:
-  [x] Configurar estructura base
-  [ ] Implementar comando sync
-  [ ] Escribir tests unitarios
-
-📄 PROJECT.md: OK
-📄 ROADMAP.md: OK
+=================================
 ```
 
 ---
 
 ## 3. `yapu archive`
 
-Archiva las tareas completadas de `STATE.md` al historial.
+Archives completed tasks from `STATE.md` to history.
 
-### Uso
+### Usage
 
 ```bash
 yapu archive
 ```
 
-### Comportamiento
+### Behavior
 
-- Extrae las tareas marcadas como completadas (`[x]`) de `STATE.md`.
-- Las añade a `HISTORY.md` con una marca de tiempo (timestamp).
-- Limpia la sección de tareas de `STATE.md`, removiendo las tareas archivadas.
-- **Error**: Falla si `STATE.md` no se encuentra o si no hay tareas completadas para archivar.
+- Extracts completed tasks (`[x]`) from `STATE.md`.
+- Appends them to `HISTORY.md` with a timestamp.
+- Cleans the tasks section of `STATE.md`, removing the archived tasks.
+- **Error**: Fails if `STATE.md` is not found or if there are no completed tasks to archive.
 
-### Ejemplo de salida
+### Example Output
 
 ```
-🪺 YapuCli - Archivando tareas completadas
+🪺 Executing Archiving System (Yapu Context Freeze)...
 
-📦 3 tareas archivadas en HISTORY.md
-🧹 STATE.md limpiado
-
-✅ Archivo completado.
+✅ Tasks successfully archived in HISTORY.md (3 tasks).
+✅ STATE.md has been cleaned and prepared for the next phase.
 ```
 
 ---
 
 ## 4. `yapu install-hooks`
 
-Instala git hooks para validar directivas del proyecto.
+Installs git hooks to validate project directives.
 
-### Uso
+### Usage
 
 ```bash
 yapu install-hooks
 ```
 
-### Comportamiento
+### Behavior
 
-- **Requiere** que exista un directorio `.git` en el proyecto (debe ser un repositorio Git).
-- Copia la plantilla `templates/pre-commit` a `.git/hooks/pre-commit`.
-- Establece permisos de ejecución (`chmod 755`) en el hook.
-- El hook `pre-commit` instalado valida las directivas de `PROJECT.md` antes de cada commit.
-- **Error**: Falla si no existe el directorio `.git`.
+- **Requires** a `.git` directory to exist in the project (must be a Git repository).
+- Copies the `templates/pre-commit` template to `.git/hooks/pre-commit`.
+- Sets execution permissions (`chmod 755`) on the hook.
+- The installed `pre-commit` hook validates `PROJECT.md` directives before each commit.
+- **Error**: Fails if the `.git` directory does not exist.
 
-### Ejemplo de salida
+### Example Output
 
 ```
-🪺 YapuCli - Instalando hooks
+🪺 Installing Yapu Guard in Git Hooks...
 
-✅ Hook pre-commit instalado en .git/hooks/pre-commit
-🔒 Permisos establecidos (755)
-
-El hook validará PROJECT.md en cada commit.
+✅ Yapu Guard: .git/hooks/pre-commit installed successfully.
 ```
 
 ---
 
 ## 5. `yapu health`
 
-Valida la integridad de la colonia (el espacio de trabajo YapuCli).
+Validates the integrity of the colony (the YapuCli workspace).
 
-### Uso
+### Usage
 
 ```bash
 yapu health
 ```
 
-### Comportamiento
+### Behavior
 
-- **Valida archivos de memoria raíz**: PROJECT.md, ROADMAP.md, STATE.md.
-- **Valida estructura del nido (.planning/)**: verifica que la carpeta exista y contenga los 10 subdirectorios reglamentarios (`codebase`, `phases`, `debug`, etc.).
-- **Valida especificaciones base**: verifica existencia de STATE.md, ROADMAP.md, REQUIREMENTS.md, METHODOLOGY.md y config.json en .planning/.
-- **Valida sintaxis JSON**: analiza que `.planning/config.json` tenga un formato JSON válido y libre de errores sintácticos.
-- **Valida Yapu Guard**: revisa si el hook de pre-commit está instalado en `.git/hooks/pre-commit` y si cuenta con permisos de ejecución.
-- **Valida consistencia semántica**: verifica que `STATE.md` contenga las declaraciones de `FASE ACTIVA` y `MODO DE OPERACIÓN ACTUAL`.
-- Retorna código de salida `0` si el espacio de trabajo es 100% saludable, o `1` si detecta errores críticos que requieran reparación.
+- **Validates core memory files**: PROJECT.md, ROADMAP.md, STATE.md.
+- **Validates nest structure (.planning/)**: verifies that the folder exists and contains the 10 standard subdirectories (`codebase`, `phases`, `debug`, etc.).
+- **Validates base specifications**: verifies existence of STATE.md, ROADMAP.md, REQUIREMENTS.md, METHODOLOGY.md, and config.json in .planning/.
+- **Validates JSON syntax**: analyzes that `.planning/config.json` has a valid JSON format and is free of syntax errors.
+- **Validates Yapu Guard**: checks if the pre-commit hook is installed at `.git/hooks/pre-commit` and if it has execution permissions.
+- **Validates semantic consistency**: verifies that `STATE.md` contains the declarations for `ACTIVE PHASE` and `CURRENT OPERATIONAL MODE`.
+- Returns exit code `0` if the workspace is 100% healthy, or `1` if it detects critical errors requiring repair.
 
-### Ejemplo de salida
+### Example Output
 
 ```
 === 🪺 YAPU WORKSPACE HEALTH CHECK ===
@@ -207,215 +207,213 @@ yapu health
 
 ## 6. `yapu sync`
 
-Sincroniza artefactos desde un directorio brain de Antigravity al proyecto.
+Syncs artifacts from an Antigravity brain directory to the project.
 
-### Uso
+### Usage
 
 ```bash
-yapu sync [--brain-path <ruta>]
+yapu sync [--brain-path <path>]
 ```
 
-### Parámetros
+### Parameters
 
-| Parámetro | Requerido | Descripción |
+| Parameter | Required | Description |
 |---|---|---|
-| `--brain-path` | No | Ruta al directorio brain de Antigravity (si se omite, se auto-detecta la sesión activa) |
+| `--brain-path` | No | Path to the Antigravity brain directory (if omitted, the active session is auto-detected) |
 
-### Comportamiento
+### Behavior
 
-- Lee los artefactos del directorio brain especificado.
-- Mapea los artefactos a archivos dentro de `.planning/`:
+- Reads the artifacts from the specified brain directory.
+- Maps the artifacts to files within `.planning/`:
 
-| Tipo de artefacto | Destino |
+| Artifact Type | Destination |
 |---|---|
 | `implementation_plan` | `.planning/current-plan.md` |
 | `task` | `.planning/current-tasks.md` |
 | `walkthrough` | `.planning/current-walkthrough.md` |
-| Artefactos custom | `.planning/artifacts/{nombre}.md` |
+| Custom Artifacts | `.planning/artifacts/{name}.md` |
 
-- **Requiere** que el directorio `.planning/` exista previamente (ejecutar `yapu init` primero).
-- Reporta la cantidad de artefactos sincronizados y cualquier error encontrado.
+- **Requires** the `.planning/` directory to exist beforehand (run `yapu init` first).
+- Reports the number of synced artifacts and any errors encountered.
 
-### Ejemplo de salida
+### Example Output
 
 ```
-🪺 YapuCli - Sincronizando artefactos
+🧠 Active brain auto-detected: /home/user/.gemini/antigravity-cli/brain/abc123/
 
-🔄 Leyendo brain: /home/user/.gemini/antigravity-cli/brain/abc123/
+🪺 Syncing brain of Antigravity → .planning/...
 
-📥 Sincronizados:
-  ✅ implementation_plan → .planning/current-plan.md
-  ✅ task → .planning/current-tasks.md
-  ✅ walkthrough → .planning/current-walkthrough.md
-  ✅ custom: api_design → .planning/artifacts/api_design.md
+✅ Synced: implementation_plan
+✅ Synced: task
+✅ Synced: walkthrough
+✅ Synced: api_design
 
-✅ 4 artefactos sincronizados, 0 errores.
+🪺 Sync complete: 4 artifacts synced.
 ```
 
 ---
 
 ## 7. `yapu handoff`
 
-Genera archivos de traspaso para continuar el trabajo en otra sesión o contexto.
+Generates handoff files to continue the work in another session or context.
 
-### Uso
+### Usage
 
 ```bash
-yapu handoff [--brain-path <ruta>]
+yapu handoff [--brain-path <path>]
 ```
 
-### Parámetros
+### Parameters
 
-| Parámetro | Requerido | Descripción |
+| Parameter | Required | Description |
 |---|---|---|
-| `--brain-path` | No | Ruta al directorio brain para contexto adicional (si se omite, se auto-detecta la sesión activa) |
+| `--brain-path` | No | Path to the brain directory for additional context (if omitted, the active session is auto-detected) |
 
-### Comportamiento
+### Behavior
 
-- Lee `.planning/STATE.md` para determinar la posición actual del proyecto.
-- Genera dos archivos de traspaso:
+- Reads `.planning/STATE.md` to determine the current position of the project.
+- Generates two handoff files:
 
-| Archivo | Formato | Propósito |
+| File | Format | Purpose |
 |---|---|---|
-| `.planning/HANDOFF.json` | JSON | Estado legible por máquina |
-| `.planning/.continue-here.md` | Markdown | Resumen legible por humanos |
+| `.planning/HANDOFF.json` | JSON | Machine-readable state |
+| `.planning/.continue-here.md` | Markdown | Human-readable summary |
 
-- Si se proporciona `--brain-path`, incorpora contexto adicional del brain de Antigravity en los archivos generados.
+- If `--brain-path` is provided, incorporates additional context from the Antigravity brain into the generated files.
 
-### Ejemplo de salida
+### Example Output
 
 ```
-🪺 YapuCli - Generando handoff
+🪺 Generating handoff for the next session...
 
-📄 Leyendo estado actual desde .planning/STATE.md...
+✅ HANDOFF.json generated: .planning/HANDOFF.json
+✅ .continue-here.md generated: .planning/.continue-here.md
 
-📦 Archivos generados:
-  ✅ .planning/HANDOFF.json (estado máquina)
-  ✅ .planning/.continue-here.md (resumen humano)
-
-🤝 Handoff listo. Comparte estos archivos para continuar el trabajo.
+🪺 Handoff ready. The next session will resume automatically.
 ```
 
 ---
 
 ## 8. `yapu brain`
 
-Inspecciona el contenido de un directorio brain de Antigravity. Tiene dos subcomandos: `list` y `log`.
+Inspects the content of an Antigravity brain directory. It has two subcommands: `list` and `log`.
 
 ---
 
 ### 8.1 `yapu brain list`
 
-Lista los artefactos almacenados en un directorio brain.
+Lists the artifacts stored in a brain directory.
 
-#### Uso
+#### Usage
 
 ```bash
-yapu brain list [--path <ruta>]
+yapu brain list [--path <path>]
 ```
 
-#### Parámetros
+#### Parameters
 
-| Parámetro | Requerido | Descripción |
+| Parameter | Required | Description |
 |---|---|---|
-| `--path` | No | Ruta al directorio brain (si se omite, se auto-detecta la sesión activa) |
+| `--path` | No | Path to the brain directory (if omitted, the active session is auto-detected) |
 
-#### Comportamiento
+#### Behavior
 
-- Escanea el directorio brain en busca de archivos `*.metadata.json`.
-- Revisa tanto la raíz como el subdirectorio `artifacts/`.
-- Para cada artefacto muestra:
-  - **Nombre** del artefacto
-  - **Tipo** (`implementation_plan`, `task`, `walkthrough`, `other`)
-  - **Resumen** (summary)
-  - **Última actualización** (`updatedAt`)
+- Scans the brain directory looking for `*.metadata.json` files.
+- Checks both the root and the `artifacts/` subdirectory.
+- For each artifact shows:
+  - **Name** of the artifact
+  - **Type** (`implementation_plan`, `task`, `walkthrough`, `other`)
+  - **Summary** (summary)
+  - **Last updated** (`updatedAt`)
 
-#### Ejemplo de salida
+#### Example Output
 
 ```
-🪺 YapuCli - Brain: Artefactos
+=== 🪺 YAPU BRAIN INSPECTOR ===
 
-📂 Brain: /home/user/.gemini/antigravity-cli/brain/abc123/
+[ ARTIFACTS ] : 3 found
 
-┌──────────────────────┬─────────────────────┬────────────────────────────────┬─────────────────────┐
-│ Nombre               │ Tipo                │ Resumen                        │ Actualizado         │
-├──────────────────────┼─────────────────────┼────────────────────────────────┼─────────────────────┤
-│ plan_principal        │ implementation_plan │ Plan de implementación del API │ 2026-05-21 10:30:00 │
-│ tareas_sprint         │ task                │ Tareas del sprint actual       │ 2026-05-21 11:00:00 │
-│ walkthrough_auth      │ walkthrough         │ Guía del módulo de auth        │ 2026-05-20 15:45:00 │
-└──────────────────────┴─────────────────────┴────────────────────────────────┴─────────────────────┘
+  📄 main_plan
+     Type: implementation_plan
+     Summary: API implementation plan
+     Updated: 2026-05-21T10:30:00.000Z
 
-📊 3 artefactos encontrados.
+  📄 sprint_tasks
+     Type: task
+     Summary: Current sprint tasks
+     Updated: 2026-05-21T11:00:00.000Z
+
+  📄 auth_walkthrough
+     Type: walkthrough
+     Summary: Authentication module guide
+     Updated: 2026-05-20T15:45:00.000Z
+
+=================================
 ```
 
 ---
 
 ### 8.2 `yapu brain log`
 
-Muestra las entradas recientes del log de conversación.
+Displays recent conversation log entries.
 
-#### Uso
+#### Usage
 
 ```bash
-yapu brain log [--path <ruta>] [-n N]
+yapu brain log [--path <path>] [-n N]
 ```
 
-#### Parámetros
+#### Parameters
 
-| Parámetro | Requerido | Descripción |
+| Parameter | Required | Description |
 |---|---|---|
-| `--path` | No | Ruta al directorio brain (si se omite, se auto-detecta la sesión activa) |
-| `-n` | No | Número de entradas a mostrar (por defecto: 20) |
+| `--path` | No | Path to the brain directory (if omitted, the active session is auto-detected) |
+| `-n` | No | Number of entries to display (default: 20) |
 
-#### Comportamiento
+#### Behavior
 
-- Parsea el log de conversación (`transcript.jsonl` o `overview.txt`) del directorio brain.
-- Muestra las últimas **N** entradas (20 por defecto).
-- Cada entrada incluye:
-  - **Ícono**: `👤` para mensajes del usuario, `🤖` para respuestas del modelo
-  - **Índice del paso** (step index)
-  - **Tipo** de entrada
-  - **Vista previa** del contenido
+- Parses the conversation log (`transcript.jsonl` or `overview.txt`) of the brain directory.
+- Displays the last **N** entries (20 by default).
+- Each entry includes:
+  - **Icon**: `👤` for user messages, `🤖` for model responses
+  - **Step index**
+  - **Type** of entry
+  - **Preview** of the content
 
-#### Ejemplo de salida
+#### Example Output
 
 ```
-🪺 YapuCli - Brain: Log de conversación
+=== 🪺 YAPU BRAIN LOG (last 5 entries) ===
 
-📂 Brain: /home/user/.gemini/antigravity-cli/brain/abc123/
-📜 Mostrando últimas 5 entradas:
+  👤 [12] USER_INPUT: Implement the authentication endpoint...
+  🤖 [13] PLANNER_RESPONSE: I will create the auth module with JWT...
+  🤖 [14] RUN_COMMAND: npm run test...
+  🤖 [15] VIEW_FILE: src/auth/handler.ts...
+  👤 [16] USER_INPUT: Add expiration token validation...
 
-#12 👤 USER_INPUT      "Implementa el endpoint de autenticación..."
-#13 🤖 MODEL_RESPONSE  "Voy a crear el módulo de auth con JWT..."
-#14 🤖 TOOL_CALL       write_to_file → src/auth/handler.ts
-#15 🤖 MODEL_RESPONSE  "He implementado el handler. Ahora voy a..."
-#16 👤 USER_INPUT      "Agrega validación de tokens expirados"
+=================================
 ```
 
 ---
 
-## Ayuda General
+## General Help
 
-Al ejecutar `yapu` sin argumentos se muestra la pantalla de ayuda con todos los comandos disponibles:
+Executing `yapu` without arguments displays the help screen listing all available commands:
 
 ```bash
 yapu
 ```
 
 ```
-🪺 YapuCli v1.0.0
+🪺 YapuCli Framework
 
-Uso: yapu <comando> [opciones]
-
-Comandos disponibles:
-  init            Inicializa la estructura de planificación
-  status          Muestra el estado actual del proyecto
-  health          Valida la integridad del espacio de trabajo
-  archive         Archiva tareas completadas
-  install-hooks   Instala git hooks de validación
-  sync            Sincroniza artefactos desde brain (auto-detectado)
-  handoff         Genera archivos de traspaso (auto-detectado)
-  brain           Inspecciona directorio brain (list, log) (auto-detectado)
-
-Ejecuta 'yapu <comando> --help' para más información sobre un comando.
+Usage:
+  yapu init              -> Founds the colony (.planning/ + complete skills).
+  yapu status            -> Radiography of the project.
+  yapu health            -> Validates workspace integrity.
+  yapu archive           -> End of season (freezes tasks in HISTORY.md).
+  yapu install-hooks     -> Deploys the hornet's nest (Yapu Guard).
+  yapu sync              -> Syncs Antigravity brain → .planning/ (auto-detected).
+  yapu handoff           -> Generates handoff for the next session (auto-detected).
+  yapu brain <list|log>  -> Inspects Antigravity brain (auto-detected).
 ```

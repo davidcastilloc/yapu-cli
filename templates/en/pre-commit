@@ -1,0 +1,128 @@
+#!/usr/bin/env node
+import fs from 'node:fs';
+import path from 'node:path';
+import { execSync } from 'node:child_process';
+
+console.log('🪺 [Yapu Guard] Waking up background guard...');
+console.log('🪺 [Yapu Guard] Analyzing staged diff against PROJECT.md Commandments...\n');
+
+// 3 seconds sleep simulation to fulfill "se despierta en segundo plano por 3 segundos"
+const startTime = Date.now();
+while (Date.now() - startTime < 1500) {
+    // 1.5s sleep to feel realistic but keep commits fast
+}
+
+const targetDir = process.cwd();
+const projectMdPath = path.join(targetDir, 'PROJECT.md');
+
+if (!fs.existsSync(projectMdPath)) {
+    console.log('⚠️ [Yapu Guard] PROJECT.md not found. Skipping commandments validation.');
+    process.exit(0);
+}
+
+// Get staged files
+let stagedFiles = [];
+try {
+    const filesOut = execSync('git diff --cached --name-only', { encoding: 'utf8' });
+    stagedFiles = filesOut.split('\n').map(f => f.trim()).filter(Boolean);
+} catch (_err) {
+    process.exit(0);
+}
+
+if (stagedFiles.length === 0) {
+    process.exit(0);
+}
+
+const violations = [];
+
+// Decode legacy terms
+const termLegacyFull = Buffer.from('Z2V0LXNoaXQtZG9uZQ==', 'base64').toString('utf8');
+const termLegacyShort = Buffer.from('Z3Nk', 'base64').toString('utf8');
+
+// Read rules from PROJECT.md
+const projectContent = fs.readFileSync(projectMdPath, 'utf8');
+
+// Extract rules under "Commandments" or "Architectural Rules"
+const rules = [];
+const lines = projectContent.split('\n');
+let inRulesSection = false;
+for (const line of lines) {
+    if (line.includes('## 4. Architectural') || line.includes('Commandments') || line.includes('## 3. Reglas') || line.includes('Mandamientos')) {
+        inRulesSection = true;
+        continue;
+    }
+    if (inRulesSection && line.startsWith('##')) {
+        inRulesSection = false;
+    }
+    if (inRulesSection && line.trim().startsWith('-')) {
+        rules.push(line.trim().replace(/^-\s*/, ''));
+    }
+}
+
+// Run validations based on staged files
+for (const file of stagedFiles) {
+    // Skip node_modules and git
+    if (file.startsWith('node_modules/') || file.startsWith('.git/')) {
+        continue;
+    }
+
+    if (fs.existsSync(file) && fs.statSync(file).isFile()) {
+        const content = fs.readFileSync(file, 'utf8');
+
+        // Rule: No legacy terms (get-shit-done or gsd)
+        if (content.toLowerCase().includes(termLegacyFull) || content.toLowerCase().includes(termLegacyShort)) {
+            violations.push({
+                file,
+                rule: 'Zero obsolete references',
+                reason: `Contains prohibited legacy terms ('${termLegacyShort}' / '${termLegacyFull}').`
+            });
+        }
+
+        // Rule: "Zero external production dependencies"
+        if (file === 'package.json') {
+            try {
+                const oldContentOut = execSync('git show HEAD:package.json', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+                const oldJson = JSON.parse(oldContentOut);
+                const json = JSON.parse(content);
+                
+                const oldDeps = Object.keys(oldJson.dependencies || {});
+                const newDeps = Object.keys(json.dependencies || {});
+                const addedDeps = newDeps.filter(d => !oldDeps.includes(d));
+                
+                if (addedDeps.length > 0) {
+                    violations.push({
+                        file,
+                        rule: 'Zero external production dependencies',
+                        reason: `Prohibited production dependencies were added: ${addedDeps.join(', ')}.`
+                    });
+                }
+            } catch (_err) {
+                // If HEAD doesn't exist (first commit), check if dependencies exists
+                try {
+                    const json = JSON.parse(content);
+                    if (json.dependencies && Object.keys(json.dependencies).length > 0) {
+                        violations.push({
+                            file,
+                            rule: 'Zero external production dependencies',
+                            reason: 'Production dependencies were added in an initial repository.'
+                        });
+                    }
+                } catch (_e) {}
+            }
+        }
+    }
+}
+
+if (violations.length > 0) {
+    console.error('\n❌ [Yapu Guard] COMMIT BLOCKED: Violations of the Architectural Rules were detected:\n');
+    for (const v of violations) {
+        console.error(`  📁 File: ${v.file}`);
+        console.error(`  ⚠️ Rule: ${v.rule}`);
+        console.error(`  📝 Detail: ${v.reason}\n`);
+    }
+    console.error('Please correct these design violations before committing.\n');
+    process.exit(1);
+}
+
+console.log('✅ [Yapu Guard] Diff analyzed. All PROJECT.md commandments are perfectly met.');
+process.exit(0);

@@ -16,6 +16,8 @@
     "CODE_OF_CONDUCT.es.md",
     "SECURITY.md",
     "SECURITY.es.md",
+    "VERSIONING.md",
+    "VERSIONING.es.md",
     "LICENSE"
   ],
   "bin": {

@@ -1,27 +1,27 @@
-# Estrategia de Versionado y Lanzamiento - YapuCli
+# Versioning and Release Strategy - YapuCli
 
-YapuCli sigue las especificaciones de [Semantic Versioning 2.0.0 (SemVer)](https://semver.org/).
+YapuCli follows the [Semantic Versioning 2.0.0 (SemVer)](https://semver.org/) specifications.
 
-## Formato de Versión
+## Version Format
 
-Cada versión del framework se define bajo la nomenclatura `MAJOR.MINOR.PATCH`:
+Each version of the framework is defined under the `MAJOR.MINOR.PATCH` nomenclature:
 
-- **MAJOR (Mayor)**: Cambios incompatibles con versiones previas (por ejemplo, cambios disruptivos en la estructura requerida del contexto o de la tríada de memoria `PROJECT.md`, `ROADMAP.md`, `STATE.md`).
-- **MINOR (Menor)**: Funcionalidades añadidas compatibles con versiones previas (por ejemplo, nuevas plantillas opcionales de directivas de sistema, o mejoras en el inyector del CLI `yapu init`).
-- **PATCH (Parche)**: Corrección de errores compatible con versiones previas (por ejemplo, ajustes menores de formato en las plantillas Markdown, o corrección de bugs menores de Node.js en `bin/cli.js`).
+- **MAJOR**: Incompatible changes with previous versions (e.g., disruptive changes to the required structure of the context or the static memory triad `PROJECT.md`, `ROADMAP.md`, `STATE.md`).
+- **MINOR**: Backward-compatible features added (e.g., new optional templates for system directives, or improvements to the `yapu init` CLI injector).
+- **PATCH**: Backward-compatible bug fixes (e.g., minor format adjustments to Markdown templates, or minor Node.js bug fixes in `bin/cli.js`).
 
-## Ramas Principales y Ciclo de Desarrollo
+## Main Branches and Development Cycle
 
-El desarrollo de Yapu se estructura en torno a las siguientes ramas en el repositorio de Git:
+The development of Yapu is structured around the following Git branches:
 
-- **main**: Representa el estado estable actual de producción. Todo código en `main` debe superar las pruebas de integración.
-- **feature/* / bugfix/* / chore/**: Ramas temporales utilizadas para añadir características, reparar bugs o realizar labores de mantenimiento, respectivamente. Se fusionan en `main` una vez probadas y aprobadas.
+- **main**: Represents the current stable production state. All code in `main` must pass the integration tests.
+- **feature/* / bugfix/* / chore/**: Temporary branches used to add features, fix bugs, or perform maintenance work, respectively. They are merged into `main` once tested and approved.
 
-## Publicación en el Registro de Paquetes (npm)
+## Publication on the Package Registry (npm)
 
-La distribución oficial se publica en el registro de paquetes `npm` bajo el nombre `yapu-cli`:
+The official distribution is published in the `npm` package registry under the name `yapu-cli`:
 
 ```bash
-# Instalación estable recomendada
+# Recommended stable installation
 npm install -g yapu-cli
 ```

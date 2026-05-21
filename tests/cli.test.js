@@ -5,6 +5,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 
+// Force Spanish as default environment for the existing test suite to maintain 100% backward compatibility
+process.env.YAPU_LANG = 'es';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.join(__dirname, '..');
@@ -300,6 +303,7 @@ Notas de prueba.
 
         const output = execSync(`node ${cliPath} health`, {
             cwd: tempDir,
+            env: { ...process.env, YAPU_LANG: 'en' },
             encoding: 'utf8'
         });
 
@@ -338,11 +342,59 @@ Notas de prueba.
 
         const output = execSync(`node ${cliPath} sync`, {
             cwd: mockProjectDir,
-            env: { ...process.env, HOME: mockHome },
+            env: { ...process.env, HOME: mockHome, YAPU_LANG: 'en' },
             encoding: 'utf8'
         });
 
         assert.ok(output.includes('Active brain auto-detected'));
         assert.ok(output.includes('uuid-newer'));
+    });
+
+    // ── NATIVE BILINGUAL & i18n TEST CASES ───────────────────────────────────
+
+    test('Muestra la ayuda de uso en ingles cuando se usa la opcion --lang en', () => {
+        const output = execSync(`node ${cliPath} --lang en`, {
+            env: { ...process.env, YAPU_LANG: '' }, // Clear global default env
+            encoding: 'utf8'
+        });
+        assert.ok(output.includes('🪺 YapuCli Framework'));
+        assert.ok(output.includes('Usage:'));
+        assert.ok(output.includes('yapu init'));
+        assert.ok(output.includes('yapu status'));
+    });
+
+    test('Ejecuta init en ingles y crea configuracion persistente', () => {
+        const testDirEn = path.join(tempDir, 'yapu-en-test');
+        fs.mkdirSync(testDirEn, { recursive: true });
+
+        const output = execSync(`node ${cliPath} init --lang en`, {
+            cwd: testDirEn,
+            env: { ...process.env, YAPU_LANG: '' }, // Clear global default env
+            encoding: 'utf8'
+        });
+
+        assert.ok(output.includes('🪺 Initializing YapuCli...'));
+        assert.ok(output.includes('✅ .planning/ directory scaffolded.'));
+        assert.ok(output.includes('✅ Memoria: PROJECT.md initialized.'));
+
+        // Assert that the config file has lang: 'en'
+        const configPath = path.join(testDirEn, '.planning', 'config.json');
+        assert.ok(fs.existsSync(configPath), 'config.json should exist');
+        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+        assert.strictEqual(config.lang, 'en');
+
+        // Assert that the triad templates have English text
+        const projectContent = fs.readFileSync(path.join(testDirEn, 'PROJECT.md'), 'utf8');
+        assert.ok(projectContent.includes('# PROJECT CONTEXT'), 'PROJECT.md should be in English');
+
+        // Assert status runs automatically in English because of the config file
+        const statusOutput = execSync(`node ${cliPath} status`, {
+            cwd: testDirEn,
+            env: { ...process.env, YAPU_LANG: '' }, // Clear global default env
+            encoding: 'utf8'
+        });
+        assert.ok(statusOutput.includes('=== 🪺 YAPU SYSTEM STATUS ==='));
+        assert.ok(statusOutput.includes('[ OPR MODE  ] :'));
+        assert.ok(statusOutput.includes('[ PHASE     ] :'));
     });
 });

@@ -2,22 +2,38 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { t, getLanguage } from '../lib/i18n.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const args = process.argv.slice(2);
-const command = args[0];
+
+// Strip --lang / -l flags from args so they don't interfere with subcommands
+const cleanArgs = [];
+for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--lang' || args[i] === '-l') {
+        i++; // skip next arg (the language value)
+    } else {
+        cleanArgs.push(args[i]);
+    }
+}
+
+const command = cleanArgs[0];
+const activeLang = getLanguage(args);
 
 const targetDir = process.cwd();
-const templatesDir = path.join(__dirname, '..', 'templates');
+let templatesDir = path.join(__dirname, '..', 'templates', activeLang);
+if (!fs.existsSync(templatesDir)) {
+    templatesDir = path.join(__dirname, '..', 'templates', 'es');
+}
 const skillsDir = path.join(targetDir, '.agents', 'skills');
 
 if (command === 'init') {
-    console.log('🪺 Inicializando YapuCli...\n');
+    console.log(t('init_start'));
 
     // ── 1. Scaffold .planning/ directory structure ──────────────────────
-    console.log('🪺 Fundando la colonia (.planning/)...');
+    console.log(t('init_colony'));
     const planningDir = path.join(targetDir, '.planning');
     const planningSubdirs = [
         '',
@@ -38,7 +54,7 @@ if (command === 'init') {
             fs.mkdirSync(dir, { recursive: true });
         }
     });
-    console.log('✅ Directorio .planning/ scaffoldeado.');
+    console.log(t('init_dir_scaffolded'));
 
     // .planning/ files from templates (skip if exists)
     const copyIfMissing = (src, dest, label) => {
@@ -46,10 +62,10 @@ if (command === 'init') {
             if (fs.existsSync(src)) {
                 fs.copyFileSync(src, dest);
             }
-            console.log(`✅ ${label} inicializado.`);
+            console.log(t('init_file_created', { label }));
             return true;
         } else {
-            console.log(`⚠️  ${label} ya existe (omitido).`);
+            console.log(t('init_file_skipped', { label }));
             return false;
         }
     };
@@ -57,9 +73,9 @@ if (command === 'init') {
     const writeIfMissing = (dest, content, label) => {
         if (!fs.existsSync(dest)) {
             fs.writeFileSync(dest, content, 'utf8');
-            console.log(`✅ ${label} inicializado.`);
+            console.log(t('init_file_created', { label }));
         } else {
-            console.log(`⚠️  ${label} ya existe (omitido).`);
+            console.log(t('init_file_skipped', { label }));
         }
     };
 
@@ -73,19 +89,35 @@ if (command === 'init') {
         path.join(planningDir, 'ROADMAP.md'),
         '.planning/ROADMAP.md'
     );
-    copyIfMissing(
-        path.join(templatesDir, 'yapu-config.json'),
-        path.join(planningDir, 'config.json'),
-        '.planning/config.json'
-    );
+
+    // Dynamic write for config.json to inject the active lang property
+    const configDest = path.join(planningDir, 'config.json');
+    if (!fs.existsSync(configDest)) {
+        const srcConfig = path.join(templatesDir, 'yapu-config.json');
+        let configObj = {};
+        if (fs.existsSync(srcConfig)) {
+            try {
+                configObj = JSON.parse(fs.readFileSync(srcConfig, 'utf8'));
+            } catch { /* use default empty obj */ }
+        }
+        configObj.lang = activeLang;
+        fs.writeFileSync(configDest, JSON.stringify(configObj, null, 2) + '\n', 'utf8');
+        console.log(t('init_file_created', { label: '.planning/config.json' }));
+    } else {
+        console.log(t('init_file_skipped', { label: '.planning/config.json' }));
+    }
+
+    const reqHeader = activeLang === 'es' ? '# Requisitos del Proyecto\n\n> Criterios de aceptación numerados con tabla de trazabilidad.\n\n---\n' : '# Project Requirements\n\n> Numbered acceptance criteria with traceability table.\n\n---\n';
     writeIfMissing(
         path.join(planningDir, 'REQUIREMENTS.md'),
-        '# Requisitos del Proyecto\n\n> Criterios de aceptación numerados con tabla de trazabilidad.\n\n---\n',
+        reqHeader,
         '.planning/REQUIREMENTS.md'
     );
+
+    const methodHeader = activeLang === 'es' ? '# Metodología\n\n> Frameworks interpretativos (lenses) reutilizables que persisten entre fases.\n\n---\n' : '# Methodology\n\n> Reusable interpretive frameworks (lenses) that persist across phases.\n\n---\n';
     writeIfMissing(
         path.join(planningDir, 'METHODOLOGY.md'),
-        '# Metodología\n\n> Frameworks interpretativos (lenses) reutilizables que persisten entre fases.\n\n---\n',
+        methodHeader,
         '.planning/METHODOLOGY.md'
     );
 
@@ -96,20 +128,20 @@ if (command === 'init') {
         const dest = path.join(targetDir, file);
         if (fs.existsSync(src) && !fs.existsSync(dest)) {
             fs.copyFileSync(src, dest);
-            console.log(`✅ Memoria: ${file} inicializada.`);
+            console.log(t('init_file_created', { label: `Memoria: ${file}` }));
         } else if (fs.existsSync(dest)) {
-            console.log(`⚠️  Memoria: ${file} ya existe (omitido).`);
+            console.log(t('init_file_skipped', { label: `Memoria: ${file}` }));
         }
     });
 
     // ── 3. Create .agents/skills/ ──────────────────────────────────────
     if (!fs.existsSync(skillsDir)) {
         fs.mkdirSync(skillsDir, { recursive: true });
-        console.log('✅ Directorio .agents/skills/ creado.');
+        console.log(t('init_skills_created'));
     }
 
     // ── 4. Deploy ALL workflows dynamically ────────────────────────────
-    console.log('\n🪺 Desplegando arsenal completo de fibras...');
+    console.log(t('init_deploying_workflows'));
 
     // 4a. All yapu-*.md from templates root → .agents/skills/
     const allWorkflows = fs.readdirSync(templatesDir)
@@ -123,7 +155,7 @@ if (command === 'init') {
             wfCount++;
         }
     });
-    console.log(`🔥 ${wfCount} workflows cargados en .agents/skills/`);
+    console.log(t('init_workflows_count', { count: wfCount }));
 
     // 4b. References: templates/references/yapu-*.md → .agents/skills/references/
     const refsSourceDir = path.join(templatesDir, 'references');
@@ -144,7 +176,7 @@ if (command === 'init') {
             }
         });
     }
-    console.log(`🔥 ${refCount} referencias cargadas en .agents/skills/references/`);
+    console.log(t('init_references_count', { count: refCount }));
 
     // 4c. Contexts: templates/contexts/yapu-*.md → .agents/skills/contexts/
     const ctxSourceDir = path.join(templatesDir, 'contexts');
@@ -165,7 +197,7 @@ if (command === 'init') {
             }
         });
     }
-    console.log(`🔥 ${ctxCount} contextos cargados en .agents/skills/contexts/`);
+    console.log(t('init_contexts_count', { count: ctxCount }));
 
     // 4d. Codebase: templates/codebase/*.md → .agents/skills/codebase/
     const cbSourceDir = path.join(templatesDir, 'codebase');
@@ -186,34 +218,34 @@ if (command === 'init') {
             }
         });
     }
-    console.log(`🔥 ${cbCount} templates de codebase cargados en .agents/skills/codebase/`);
+    console.log(t('init_codebase_count', { count: cbCount }));
 
-    console.log('\n🚀 ¡Colonia fundada! Yapu está listo para tejer.');
+    console.log(t('init_done'));
 } else if (command === 'archive') {
-    console.log('🪺 Ejecutando Sistema de Archivo (Yapu Context Freeze)...\n');
+    console.log(t('archive_start'));
 
     const statePath = path.join(targetDir, 'STATE.md');
     const historyPath = path.join(targetDir, 'HISTORY.md');
 
     if (!fs.existsSync(statePath)) {
-        console.error('❌ Error: STATE.md no encontrado en el directorio raíz.');
+        console.error(t('archive_no_state'));
         process.exit(1);
     }
 
     const stateContent = fs.readFileSync(statePath, 'utf8');
 
-    // 1. Extraer fase activa
-    const activePhaseMatch = stateContent.match(/\*\*FASE ACTIVA:\*\*\s*(.+)/);
-    const activePhase = activePhaseMatch ? activePhaseMatch[1].trim() : 'Fase Desconocida';
+    // 1. Extract active phase
+    const activePhaseMatch = stateContent.match(/\*\*FASE ACTIVA:\*\*\s*(.+)/i) || stateContent.match(/\*\*ACTIVE PHASE:\*\*\s*(.+)/i);
+    const activePhase = activePhaseMatch ? activePhaseMatch[1].trim() : (activeLang === 'es' ? 'Fase Desconocida' : 'Unknown Phase');
 
-    // 2. Extraer tareas completadas y pendientes
+    // 2. Extract completed and pending tasks
     const lines = stateContent.split('\n');
     const completedTasks = [];
     const pendingTasks = [];
     let inTasksSection = false;
 
     for (const line of lines) {
-        if (line.includes('## Tareas de la Fase Actual')) {
+        if (line.includes('## Tareas de la Fase Actual') || line.includes('## Tasks of the Current Phase') || line.includes('## Tareas') || line.includes('## Tasks')) {
             inTasksSection = true;
             continue;
         }
@@ -230,48 +262,57 @@ if (command === 'init') {
     }
 
     if (completedTasks.length === 0) {
-        console.log('ℹ️  No se encontraron tareas completadas ([x]) en STATE.md para archivar.');
+        console.log(t('archive_no_completed'));
         process.exit(0);
     }
 
-    // 3. Generar entrada de archivo estructurada
+    // 3. Generate structured archive entry
     const timestamp = new Date().toISOString().replace('T', ' ').substring(0, 19);
-    let archiveEntry = `\n# ARCHIVO DE CONTEXTO: ${activePhase}\n`;
-    archiveEntry += `*Congelado el:* ${timestamp}\n\n`;
-    archiveEntry += '### Tareas Técnicas Archivadas:\n';
+    let archiveEntry = t('archive_entry_title', { phase: activePhase });
+    archiveEntry += t('archive_entry_frozen', { timestamp });
+    archiveEntry += t('archive_entry_tasks');
     completedTasks.forEach(task => {
         archiveEntry += `${task}\n`;
     });
     archiveEntry += '\n---\n';
 
-    // Guardar en HISTORY.md
+    // Save to HISTORY.md
     fs.appendFileSync(historyPath, archiveEntry, 'utf8');
-    console.log(`✅ Tareas archivadas con éxito en HISTORY.md (${completedTasks.length} tareas).`);
+    console.log(t('archive_success', { count: completedTasks.length }));
 
-    // 4. Limpiar STATE.md
-    let cleanTasksSection = '## Tareas de la Fase Actual\n';
+    // 4. Clean STATE.md
+    const titleTasks = activeLang === 'es' ? '## Tareas de la Fase Actual\n' : '## Tasks of the Current Phase\n';
+    let cleanTasksSection = titleTasks;
     if (pendingTasks.length > 0) {
         pendingTasks.forEach(task => {
             cleanTasksSection += `${task}\n`;
         });
     } else {
-        cleanTasksSection += '- [ ] [Definir Tarea 1 de la siguiente fase]\n';
+        cleanTasksSection += t('archive_next_phase_todo');
     }
 
-    const tasksStartIdx = stateContent.indexOf('## Tareas de la Fase Actual');
-    const tasksEndIdx = stateContent.indexOf('## Contexto de Ejecución');
+    const tasksStartIdx = stateContent.toLowerCase().indexOf('## tareas') !== -1 
+        ? stateContent.toLowerCase().indexOf('## tareas')
+        : stateContent.toLowerCase().indexOf('## tasks');
+
+    const contextTitleStr = activeLang === 'es' ? '## contexto de ejecución' : '## execution context';
+    const tasksEndIdx = stateContent.toLowerCase().indexOf(contextTitleStr) !== -1
+        ? stateContent.toLowerCase().indexOf(contextTitleStr)
+        : (stateContent.toLowerCase().indexOf('## accumulated context') !== -1 
+            ? stateContent.toLowerCase().indexOf('## accumulated context')
+            : stateContent.toLowerCase().indexOf('## session continuity'));
 
     if (tasksStartIdx !== -1 && tasksEndIdx !== -1) {
         const beforeTasks = stateContent.substring(0, tasksStartIdx);
         const afterTasks = stateContent.substring(tasksEndIdx);
         const newStateContent = beforeTasks + cleanTasksSection + '\n' + afterTasks;
         fs.writeFileSync(statePath, newStateContent, 'utf8');
-        console.log('✅ STATE.md ha sido limpiado y preparado para la siguiente fase.');
+        console.log(t('archive_state_cleaned'));
     } else {
-        console.warn('⚠️  Advertencia: No se pudo formatear STATE.md automáticamente.');
+        console.warn(t('archive_state_warn'));
     }
 } else if (command === 'status') {
-    console.log('=== 🪺 YAPU SYSTEM STATUS ===\n');
+    console.log(t('status_title'));
     
     const files = {
         state: path.join(targetDir, 'STATE.md'),
@@ -280,49 +321,49 @@ if (command === 'init') {
     };
 
     if (!fs.existsSync(files.state)) {
-        console.log('❌ Error: No se encontró STATE.md. Ejecuta "yapu init" primero.');
+        console.log(t('status_no_state'));
         process.exit(1);
     }
 
     try {
         const stateContent = fs.readFileSync(files.state, 'utf-8');
         
-        // Extraer el Modo usando Regex
-        const modeMatch = stateContent.match(/\[\s*MODO DE OPERACIÓN ACTUAL:\s*(.*?)\s*\]/i);
-        const currentMode = modeMatch ? modeMatch[1].trim() : 'NO DEFINIDO';
+        // Extract the Mode using Regex
+        const modeMatch = stateContent.match(/\[\s*MODO DE OPERACIÓN ACTUAL:\s*(.*?)\s*\]/i) || stateContent.match(/\[\s*CURRENT OPERATIONAL MODE:\s*(.*?)\s*\]/i);
+        const currentMode = modeMatch ? modeMatch[1].trim() : 'NO DEFINIDO / UNDEFINED';
         
-        // Extraer Fase Activa
-        const phaseMatch = stateContent.match(/\*\*FASE ACTIVA:\*\*\s*(.*)/i);
-        const activePhase = phaseMatch ? phaseMatch[1].trim() : 'NO DEFINIDA';
+        // Extract Active Phase
+        const phaseMatch = stateContent.match(/\*\*FASE ACTIVA:\*\*\s*(.*)/i) || stateContent.match(/\*\*ACTIVE PHASE:\*\*\s*(.*)/i);
+        const activePhase = phaseMatch ? phaseMatch[1].trim() : 'NO DEFINIDA / UNDEFINED';
 
-        console.log(`[ OPR MODE  ] : ${currentMode}`);
-        console.log(`[ PHASE     ] : ${activePhase}`);
+        console.log(t('status_opr_mode', { mode: currentMode }));
+        console.log(t('status_phase', { phase: activePhase }));
         console.log('---------------------------------');
         
-        // Extraer Tareas
-        console.log('[ TASKS     ] :');
+        // Extract Tasks
+        console.log(t('status_tasks'));
         const tasks = stateContent.split('\n').filter(line => line.trim().startsWith('- ['));
         if (tasks.length > 0) {
             tasks.forEach(task => console.log(`  ${task.trim()}`));
         } else {
-            console.log('  (No hay tareas definidas en STATE.md)');
+            console.log(t('status_no_tasks'));
         }
         
         console.log('---------------------------------');
         const hasProject = fs.existsSync(files.project) ? 'OK' : 'MISSING';
         const hasRoadmap = fs.existsSync(files.roadmap) ? 'OK' : 'MISSING';
-        console.log(`[ SPECS     ] : PROJECT.md (${hasProject}) | ROADMAP.md (${hasRoadmap})`);
+        console.log(t('status_specs', { project: hasProject, roadmap: hasRoadmap }));
         
-        console.log('\n=================================');
+        console.log(t('status_footer'));
     } catch (err) {
-        console.error('❌ Error leyendo la memoria de Yapu:', err.message);
+        console.error(t('status_read_error', { message: err.message }));
     }
 } else if (command === 'install-hooks') {
-    console.log('🪺 Instalando Yapu Guard en Git Hooks...\n');
+    console.log(t('hooks_start'));
     
     const gitDir = path.join(targetDir, '.git');
     if (!fs.existsSync(gitDir)) {
-        console.error('❌ Error: Este directorio no es un repositorio Git activo (.git no encontrado).');
+        console.error(t('hooks_no_git'));
         process.exit(1);
     }
 
@@ -338,16 +379,16 @@ if (command === 'init') {
         fs.copyFileSync(src, dest);
         try {
             fs.chmodSync(dest, 0o755); // Dar permisos ejecutables
-            console.log('✅ Yapu Guard: .git/hooks/pre-commit instalado con éxito.');
+            console.log(t('hooks_success'));
         } catch (err) {
-            console.warn(`⚠️  No se pudieron asignar permisos ejecutables automáticamente: ${err.message}`);
+            console.warn(t('hooks_chmod_warn', { message: err.message }));
         }
     } else {
-        console.error('❌ Error: Plantilla del hook "pre-commit" no encontrada.');
+        console.error(t('hooks_no_template'));
         process.exit(1);
     }
 } else if (command === 'health') {
-    console.log('=== 🪺 YAPU WORKSPACE HEALTH CHECK ===\n');
+    console.log(t('health_title'));
 
     let errorsCount = 0;
     let warningsCount = 0;
@@ -367,21 +408,21 @@ if (command === 'init') {
     };
 
     // ── 1. Checking core memory files ──────────────────────
-    console.log('[+] Checking core memory files...');
+    console.log(t('health_core_memory'));
     const projectPath = path.join(targetDir, 'PROJECT.md');
     const roadmapPath = path.join(targetDir, 'ROADMAP.md');
     const statePath = path.join(targetDir, 'STATE.md');
 
-    printResult(fs.existsSync(projectPath), 'PROJECT.md exists');
-    printResult(fs.existsSync(roadmapPath), 'ROADMAP.md exists');
-    printResult(fs.existsSync(statePath), 'STATE.md exists');
+    printResult(fs.existsSync(projectPath), t('health_project_exists'));
+    printResult(fs.existsSync(roadmapPath), t('health_roadmap_exists'));
+    printResult(fs.existsSync(statePath), t('health_state_exists'));
     console.log('');
 
     // ── 2. Checking .planning/ colony structure ──────────────────────
-    console.log('[+] Checking .planning/ colony structure...');
+    console.log(t('health_planning_colony'));
     const planningDir = path.join(targetDir, '.planning');
     const hasPlanningDir = fs.existsSync(planningDir);
-    printResult(hasPlanningDir, '.planning/ directory exists');
+    printResult(hasPlanningDir, t('health_planning_exists'));
 
     if (hasPlanningDir) {
         const planningSubdirs = [
@@ -402,7 +443,7 @@ if (command === 'init') {
                 subdirsOk = false;
             }
         });
-        printResult(subdirsOk, 'All 10 required subdirectories exist');
+        printResult(subdirsOk, t('health_all_subdirs_exist'));
 
         const reqFiles = [
             { name: 'STATE.md', critical: true },
@@ -415,14 +456,14 @@ if (command === 'init') {
         reqFiles.forEach(file => {
             const filePath = path.join(planningDir, file.name);
             const exists = fs.existsSync(filePath);
-            printResult(exists, `.planning/${file.name} exists`, file.critical);
+            printResult(exists, t('health_file_exists', { name: file.name }), file.critical);
 
             if (file.name === 'config.json' && exists) {
                 try {
                     JSON.parse(fs.readFileSync(filePath, 'utf8'));
-                    printResult(true, 'config.json has valid JSON format');
+                    printResult(true, t('health_config_json_format'));
                 } catch {
-                    printResult(false, 'config.json contains invalid JSON syntax', true);
+                    printResult(false, t('health_config_json_syntax'), true);
                 }
             }
         });
@@ -430,209 +471,207 @@ if (command === 'init') {
     console.log('');
 
     // ── 3. Checking Yapu Guard (Git Hooks) ──────────────────────
-    console.log('[+] Checking Yapu Guard (Git Hooks)...');
+    console.log(t('health_guard_hooks'));
     const gitDir = path.join(targetDir, '.git');
     const hasGit = fs.existsSync(gitDir);
-    printResult(hasGit, 'Active git repository detected', false);
+    printResult(hasGit, t('health_active_git'), false);
 
     if (hasGit) {
         const preCommitPath = path.join(gitDir, 'hooks', 'pre-commit');
         const hasHook = fs.existsSync(preCommitPath);
-        printResult(hasHook, 'Pre-commit hook installed at .git/hooks/pre-commit', false);
+        printResult(hasHook, t('health_hook_installed'), false);
 
         if (hasHook) {
             try {
                 const hookStat = fs.statSync(preCommitPath);
                 const isExecutable = (hookStat.mode & 0o111) !== 0;
-                printResult(isExecutable, 'Pre-commit hook is executable', false);
+                printResult(isExecutable, t('health_hook_executable'), false);
             } catch {
-                printResult(false, 'Pre-commit hook permissions could not be read', false);
+                printResult(false, t('health_hook_perms'), false);
             }
         }
     }
     console.log('');
 
     // ── 4. Checking Memory Integrity ──────────────────────
-    console.log('[+] Checking Memory Integrity...');
+    console.log(t('health_memory_integrity'));
     if (fs.existsSync(statePath)) {
         try {
             const stateContent = fs.readFileSync(statePath, 'utf8');
-            const hasMode = stateContent.match(/\[\s*MODO DE OPERACIÓN ACTUAL:\s*(.*?)\s*\]/i);
-            const hasPhase = stateContent.match(/\*\*FASE ACTIVA:\*\*\s*(.*)/i);
+            const hasMode = stateContent.match(/\[\s*MODO DE OPERACIÓN ACTUAL:\s*(.*?)\s*\]/i) || stateContent.match(/\[\s*CURRENT OPERATIONAL MODE:\s*(.*?)\s*\]/i);
+            const hasPhase = stateContent.match(/\*\*FASE ACTIVA:\*\*\s*(.*)/i) || stateContent.match(/\*\*ACTIVE PHASE:\*\*\s*(.*)/i);
 
-            printResult(Boolean(hasMode), 'Operational mode declared in STATE.md');
-            printResult(Boolean(hasPhase), 'Active phase declared in STATE.md');
+            printResult(Boolean(hasMode), t('health_opr_mode_declared'));
+            printResult(Boolean(hasPhase), t('health_active_phase_declared'));
         } catch {
-            printResult(false, 'Could not read STATE.md context structure');
+            printResult(false, t('health_state_read_error'));
         }
     } else {
-        printResult(false, 'Skipped (STATE.md missing)');
+        printResult(false, t('health_state_skipped'));
     }
     console.log('');
 
     // ── 5. Final Report ──────────────────────
-    console.log('=============================================');
+    console.log(t('health_report_separator'));
     if (errorsCount === 0) {
         if (warningsCount === 0) {
-            console.log('🔥 Workspace is 100% HEALTHY! The colony is thriving. 🪺');
+            console.log(t('health_healthy'));
         } else {
-            console.log(`⚠️  Workspace is functional but has ${warningsCount} warning(s).`);
+            console.log(t('health_warnings', { count: warningsCount }));
         }
         process.exit(0);
     } else {
-        console.log(`❌ Workspace is UNHEALTHY with ${errorsCount} error(s) and ${warningsCount} warning(s).`);
-        console.log('👉 Run "yapu init" or "yapu install-hooks" to repair.');
+        console.log(t('health_unhealthy', { errors: errorsCount, warnings: warningsCount }));
+        console.log(t('health_repair_tip'));
         process.exit(1);
     }
 } else if (command === 'sync') {
     // ── yapu sync --brain-path {path} ──────────────────────────────────
-    const brainIdx = args.indexOf('--brain-path');
-    let brainPath = brainIdx !== -1 ? args[brainIdx + 1] : null;
+    const brainIdx = cleanArgs.indexOf('--brain-path');
+    let brainPath = brainIdx !== -1 ? cleanArgs[brainIdx + 1] : null;
 
     if (!brainPath) {
         try {
             const { detectBrainPath } = await import('../lib/artifacts.js');
             brainPath = detectBrainPath();
             if (brainPath) {
-                console.log(`🧠 Active brain auto-detected: ${brainPath}\n`);
+                console.log(t('sync_brain_detected', { path: brainPath }));
             }
         } catch { /* ignore */ }
     }
 
     if (!brainPath) {
-        console.error('❌ Uso: yapu sync --brain-path <ruta-al-brain>');
-        console.error('   Ejemplo: yapu sync --brain-path ~/.gemini/antigravity-cli/brain/<uuid>');
+        console.error(t('sync_usage'));
         process.exit(1);
     }
 
     if (!fs.existsSync(brainPath)) {
-        console.error(`❌ Error: Brain directory no encontrado: ${brainPath}`);
+        console.error(t('sync_brain_not_found', { path: brainPath }));
         process.exit(1);
     }
 
     const planningPath = path.join(targetDir, '.planning');
     if (!fs.existsSync(planningPath)) {
-        console.error('❌ Error: .planning/ no encontrado. Ejecuta "yapu init" primero.');
+        console.error(t('sync_no_planning'));
         process.exit(1);
     }
 
-    console.log('🪺 Sincronizando brain de Antigravity → .planning/...\n');
+    console.log(t('sync_start'));
 
     try {
         const { syncBrainToPlanning } = await import('../lib/artifacts.js');
         const result = syncBrainToPlanning(brainPath, planningPath);
 
         if (result.synced.length > 0) {
-            result.synced.forEach(name => console.log(`✅ Sincronizado: ${name}`));
+            result.synced.forEach(name => console.log(t('sync_success', { name })));
         } else {
-            console.log('ℹ️  No se encontraron artifacts en el brain para sincronizar.');
+            console.log(t('sync_no_artifacts'));
         }
 
         if (result.errors.length > 0) {
-            result.errors.forEach(err => console.error(`⚠️  Error: ${err}`));
+            result.errors.forEach(err => console.error(t('sync_error', { error: err })));
         }
 
-        console.log(`\n🪺 Sync completado: ${result.synced.length} artifacts sincronizados.`);
+        console.log(t('sync_done', { count: result.synced.length }));
     } catch (err) {
-        console.error('❌ Error durante la sincronización:', err.message);
+        console.error(t('sync_fatal_error', { message: err.message }));
         process.exit(1);
     }
 } else if (command === 'handoff') {
     // ── yapu handoff [--brain-path {path}] ─────────────────────────────
-    const brainIdx = args.indexOf('--brain-path');
-    let brainPath = brainIdx !== -1 ? args[brainIdx + 1] : null;
+    const brainIdx = cleanArgs.indexOf('--brain-path');
+    let brainPath = brainIdx !== -1 ? cleanArgs[brainIdx + 1] : null;
 
     if (!brainPath) {
         try {
             const { detectBrainPath } = await import('../lib/artifacts.js');
             brainPath = detectBrainPath();
             if (brainPath) {
-                console.log(`🧠 Active brain auto-detected: ${brainPath}\n`);
+                console.log(t('sync_brain_detected', { path: brainPath }));
             }
         } catch { /* ignore */ }
     }
 
     const planningPath = path.join(targetDir, '.planning');
     if (!fs.existsSync(planningPath)) {
-        console.error('❌ Error: .planning/ no encontrado. Ejecuta "yapu init" primero.');
+        console.error(t('sync_no_planning'));
         process.exit(1);
     }
 
-    console.log('🪺 Generando handoff para la siguiente sesión...\n');
+    console.log(t('handoff_start'));
 
     try {
         const { generateHandoff } = await import('../lib/artifacts.js');
-        const result = generateHandoff(planningPath, brainPath);
+        const result = generateHandoff(planningPath, brainPath, activeLang);
 
-        console.log(`✅ HANDOFF.json generado: ${result.handoffPath}`);
-        console.log(`✅ .continue-here.md generado: ${result.continueHerePath}`);
-        console.log('\n🪺 Handoff listo. La siguiente sesión retomará automáticamente.');
+        console.log(t('handoff_success_json', { path: result.handoffPath }));
+        console.log(t('handoff_success_md', { path: result.continueHerePath }));
+        console.log(t('handoff_done'));
     } catch (err) {
-        console.error('❌ Error generando el handoff:', err.message);
+        console.error(t('handoff_error', { message: err.message }));
         process.exit(1);
     }
 } else if (command === 'brain') {
     // ── yapu brain list|log --path {path} ──────────────────────────────
-    const subCommand = args[1];
-    const pathIdx = args.indexOf('--path');
-    let brainPath = pathIdx !== -1 ? args[pathIdx + 1] : null;
+    const subCommand = cleanArgs[1];
+    const pathIdx = cleanArgs.indexOf('--path');
+    let brainPath = pathIdx !== -1 ? cleanArgs[pathIdx + 1] : null;
 
     if (!brainPath) {
         try {
             const { detectBrainPath } = await import('../lib/artifacts.js');
             brainPath = detectBrainPath();
             if (brainPath) {
-                console.log(`🧠 Active brain auto-detected: ${brainPath}\n`);
+                console.log(t('sync_brain_detected', { path: brainPath }));
             }
         } catch { /* ignore */ }
     }
 
     if (!brainPath) {
-        console.error('❌ Uso: yapu brain <list|log> --path <ruta-al-brain>');
-        console.error('   Ejemplo: yapu brain list --path ~/.gemini/antigravity-cli/brain/<uuid>');
+        console.error(t('brain_usage'));
         process.exit(1);
     }
 
     if (!fs.existsSync(brainPath)) {
-        console.error(`❌ Error: Brain directory no encontrado: ${brainPath}`);
+        console.error(t('sync_brain_not_found', { path: brainPath }));
         process.exit(1);
     }
 
     if (subCommand === 'list') {
-        console.log('=== 🪺 YAPU BRAIN INSPECTOR ===\n');
+        console.log(t('brain_list_title'));
         try {
             const { listArtifacts } = await import('../lib/artifacts.js');
             const artifacts = listArtifacts(brainPath);
 
             if (artifacts.length === 0) {
-                console.log('ℹ️  No se encontraron artifacts en el brain.');
+                console.log(t('brain_no_artifacts'));
             } else {
-                console.log(`[ ARTIFACTS ] : ${artifacts.length} encontrados\n`);
+                console.log(t('brain_artifacts_found', { count: artifacts.length }));
                 artifacts.forEach(art => {
                     const typeShort = art.type.replace('ARTIFACT_TYPE_', '');
-                    console.log(`  📄 ${art.name}`);
-                    console.log(`     Tipo: ${typeShort}`);
-                    console.log(`     Resumen: ${art.summary || '(sin resumen)'}`);
-                    console.log(`     Actualizado: ${art.updatedAt || '(desconocido)'}`);
+                    console.log(t('brain_art_name', { name: art.name }));
+                    console.log(t('brain_art_type', { type: typeShort }));
+                    console.log(t('brain_art_summary', { summary: art.summary || t('brain_art_no_summary') }));
+                    console.log(t('brain_art_updated', { updated: art.updatedAt || t('brain_art_unknown_updated') }));
                     console.log('');
                 });
             }
             console.log('=================================');
         } catch (err) {
-            console.error('❌ Error leyendo el brain:', err.message);
+            console.error(t('brain_read_error', { message: err.message }));
             process.exit(1);
         }
     } else if (subCommand === 'log') {
-        const nIdx = args.indexOf('-n');
-        const limit = nIdx !== -1 ? parseInt(args[nIdx + 1], 10) || 20 : 20;
+        const nIdx = cleanArgs.indexOf('-n');
+        const limit = nIdx !== -1 ? parseInt(cleanArgs[nIdx + 1], 10) || 20 : 20;
 
-        console.log(`=== 🪺 YAPU BRAIN LOG (últimas ${limit} entradas) ===\n`);
+        console.log(t('brain_log_title', { limit }));
         try {
             const { readConversationLog } = await import('../lib/artifacts.js');
             const entries = readConversationLog(brainPath, limit);
 
             if (entries.length === 0) {
-                console.log('ℹ️  No se encontraron entradas en el log del brain.');
+                console.log(t('brain_log_empty'));
             } else {
                 entries.forEach(entry => {
                     const icon = entry.source === 'USER_EXPLICIT' ? '👤' : '🤖';
@@ -642,22 +681,22 @@ if (command === 'init') {
             }
             console.log('\n=================================');
         } catch (err) {
-            console.error('❌ Error leyendo el log:', err.message);
+            console.error(t('brain_log_error', { message: err.message }));
             process.exit(1);
         }
     } else {
-        console.error('❌ Subcomando no reconocido. Usa: yapu brain <list|log> --path <ruta>');
+        console.error(t('brain_unrecognized'));
         process.exit(1);
     }
 } else {
-    console.log('🪺 Framework YapuCli\n');
-    console.log('Uso:');
-    console.log('  yapu init              -> Funda la colonia (.planning/ + skills completos).');
-    console.log('  yapu status            -> Radiografía del proyecto.');
-    console.log('  yapu health            -> Valida la integridad del espacio de trabajo.');
-    console.log('  yapu archive           -> Fin de temporada (congela tareas en HISTORY.md).');
-    console.log('  yapu install-hooks     -> Despliega el avispero (Yapu Guard).');
-    console.log('  yapu sync              -> Sincroniza brain de Antigravity → .planning/ (auto-detectado).');
-    console.log('  yapu handoff           -> Genera handoff para la siguiente sesión (auto-detectado).');
-    console.log('  yapu brain <list|log>  -> Inspecciona el brain de Antigravity (auto-detectado).');
+    console.log(t('help_title'));
+    console.log(t('help_usage'));
+    console.log(t('help_init'));
+    console.log(t('help_status'));
+    console.log(t('help_health'));
+    console.log(t('help_archive'));
+    console.log(t('help_install_hooks'));
+    console.log(t('help_sync'));
+    console.log(t('help_handoff'));
+    console.log(t('help_brain'));
 }

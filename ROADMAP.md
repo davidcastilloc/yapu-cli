@@ -1,21 +1,21 @@
-# ROADMAP DEL PROYECTO - ANTIGRAVITY YAPU
+# PROJECT ROADMAP - ANTIGRAVITY YAPU
 
-Este documento define el ciclo de vida del desarrollo de **Yapu** en fases aisladas.
+This document defines the development life cycle of **Yapu** in isolated phases.
 
-- [x] **Fase 1: Estructuración y CLI Base**
-  - Diseñar los prompts de directivas base (`yapu-map.md`, `yapu-plan.md`, `yapu-execute.md`, `yapu-verify.md`).
-  - Crear el script CLI `bin/cli.js` para automatizar la inicialización del entorno (`yapu init`).
-- [x] **Fase 2: Expansión de Habilidades de Interrogatorio**
-  - Implementar la skill de arquitectura táctica (`yapu-grill-me.md`).
-  - Implementar la skill de documentación profunda (`yapu-grill-docs.md`).
-  - Integrar las nuevas habilidades en el flujo de copia de `bin/cli.js`.
-- [x] **Fase 3: Infraestructura de Calidad**
-  - Configurar herramientas de formateo y validación estática de código (ESLint moderno).
-  - Implementar una suite de pruebas automatizadas con el test runner nativo de Node.js.
-  - Garantizar la cobertura para la inyección segura de plantillas del CLI y prevención de colisiones.
-- [x] **Fase 4: Expansión Elite**
-  - Diseñar los workflows especializados (`yapu-secops.md`, `yapu-dba.md`, `yapu-ui.md`).
-  - Diseñar el modo forense detective (`yapu-forensics.md`).
-  - Implementar los comandos `yapu archive` y `yapu install-hooks` en el CLI.
-- [ ] **Fase 5: Herramienta de Chequeo y Diagnóstico**
-  - Diseñar el comando `yapu check` para verificar si un espacio de trabajo tiene una tríada de memoria íntegra y sin referencias prohibidas.
+- [x] **Phase 1: Structuring and Base CLI**
+  - Design the base directive prompts (`yapu-map.md`, `yapu-plan.md`, `yapu-execute.md`, `yapu-verify.md`).
+  - Create the CLI script `bin/cli.js` to automate workspace initialization (`yapu init`).
+- [x] **Phase 2: Interrogation Skills Expansion**
+  - Implement the tactical architecture skill (`yapu-grill-me.md`).
+  - Implement the deep documentation skill (`yapu-grill-docs.md`).
+  - Integrate the new skills into the copy flow of `bin/cli.js`.
+- [x] **Phase 3: Quality Infrastructure**
+  - Configure code formatting and static analysis tools (modern ESLint).
+  - Implement an automated test suite with the native Node.js test runner.
+  - Guarantee coverage for secure CLI template injection and collision prevention.
+- [x] **Phase 4: Elite Expansion**
+  - Design specialized workflows (`yapu-secops.md`, `yapu-dba.md`, `yapu-ui.md`).
+  - Design the detective forensics mode (`yapu-forensics.md`).
+  - Implement the `yapu archive` and `yapu install-hooks` commands in the CLI.
+- [ ] **Phase 5: Workspace Check and Diagnostics Tool**
+  - Design the `yapu check` command to verify if a workspace has an intact memory triad and is free from prohibited references.

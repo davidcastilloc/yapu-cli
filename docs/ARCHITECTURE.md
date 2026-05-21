@@ -1,20 +1,20 @@
-# Arquitectura de YapuCli
+# YapuCli Architecture
 
-**YapuCli** es un framework ligero de ingeniería de contexto y meta-prompting diseñado para potenciar la precisión de **Antigravity CLI**. Su propósito es estructurar y delimitar de forma estricta la memoria operativa expuesta a los agentes autónomos de Antigravity para prevenir el fenómeno conocido como **degradación de contexto** (*context rot*).
-
----
-
-## 1. El Problema: Degradación de Contexto (Context Rot)
-
-A medida que una sesión de desarrollo con agentes de IA autónomos progresa, la ventana de contexto se llena de información histórica redundante: transcripciones de chats largos, listados de código intermedios, errores de compilación ya resueltos y comandos antiguos. 
-
-Este exceso de datos degrada la capacidad del modelo para recordar las decisiones clave de arquitectura y los requisitos del negocio, induciendo a errores y desvíos técnicos.
+**YapuCli** is a lightweight context-engineering and meta-prompting framework designed to boost the precision of **Antigravity CLI**. Its purpose is to strictly structure and delimit the operational memory exposed to autonomous Antigravity agents, preventing the phenomenon known as **context rot**.
 
 ---
 
-## 2. La Solución: Tríada de Memoria Estática
+## 1. The Problem: Context Rot
 
-Yapu resuelve la degradación de contexto mediante la imposición de una **tríada de memoria estática** en la raíz del proyecto. Estos tres archivos Markdown actúan como un ancla contextual invariable y de lectura constante para el agente:
+As a development session with autonomous AI agents progresses, the context window gets filled with redundant historical information: long chat transcripts, intermediate code listings, already resolved compilation errors, and old commands.
+
+This excess data degrades the model's ability to recall key architectural decisions and business requirements, inducing bugs and technical drift.
+
+---
+
+## 2. The Solution: Static Memory Triad
+
+Yapu solves context rot by enforcing a **static memory triad** in the project root. These three Markdown files act as an unvarying, constantly read contextual anchor for the agent:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -23,8 +23,8 @@ Yapu resuelve la degradación de contexto mediante la imposición de una **tría
 │   ┌───────────────┐  ┌───────────────┐  ┌───────────────┐   │
 │   │  PROJECT.md   │  │  ROADMAP.md   │  │   STATE.md    │   │
 │   │               │  │               │  │               │   │
-│   │ Arquitectura  │  │   Fases de    │  │ Tarea Activa  │   │
-│   │ y Mandamientos│  │  Desarrollo   │  │   y Notas     │   │
+│   │ Architecture  │  │  Development  │  │ Active Task   │   │
+│   │ & Mandaments  │  │    Phases     │  │   & Notes     │   │
 │   └───────┬───────┘  └───────┬───────┘  └───────┬───────┘   │
 └───────────┼──────────────────┼──────────────────┼───────────┘
             │                  │                  │
@@ -33,30 +33,30 @@ Yapu resuelve la degradación de contexto mediante la imposición de una **tría
             ┌─────────────────────────────────────┐
             │   .antigravity/workflows/execute.md │
             │                                     │
-            │        Directiva de Sistema         │
+            │          System Directive           │
             └─────────────────────────────────────┘
 ```
 
-### I. PROJECT.md: La Visión y Arquitectura Intocable
-- **Propósito**: Contiene la identidad esencial del proyecto (stack tecnológico principal, reglas estrictas de arquitectura y mandamientos del código).
-- **Alcance**: No cambia durante las fases regulares de programación. Le indica al agente los límites de diseño que jamás debe cruzar.
+### I. PROJECT.md: The Vision and Untouchable Architecture
+- **Purpose**: Contains the essential identity of the project (main technology stack, strict architectural rules, and code mandaments).
+- **Scope**: Does not change during regular programming phases. It instructs the agent on the design boundaries it must never cross.
 
-### II. ROADMAP.md: El Mapa de Ruta Secuencial
-- **Propósito**: Describe el ciclo de vida del proyecto desglosado en fases aisladas.
-- **Alcance**: Define qué fases han sido completadas `[x]` y cuál es la siguiente fase pendiente. Antigravity solo tiene permitido concentrarse en una sola fase a la vez.
+### II. ROADMAP.md: The Sequential Roadmap
+- **Purpose**: Describes the project lifecycle broken down into isolated phases.
+- **Scope**: Defines which phases have been completed `[x]` and what the next pending phase is. Antigravity is only allowed to focus on one single phase at a time.
 
-### III. STATE.md: La Memoria de Trabajo del Agente
-- **Propósito**: Almacena a corto plazo el estado activo de la ejecución, detallando la lista de tareas específicas y notas temporales de contexto (como decisiones tomadas durante el debugging o comandos a recordar).
-- **Alcance**: Limpiado dinámicamente al transicionar de fase para erradicar tokens innecesarios de la sesión del agente.
+### III. STATE.md: The Agent's Working Memory
+- **Purpose**: Stores the short-term active execution state, detailing the list of specific tasks and temporary context notes (such as decisions made during debugging or commands to remember).
+- **Scope**: Dynamically cleared when transitioning phases to eradicate unnecessary tokens from the agent's session.
 
 ---
 
-## 3. Flujo de Ejecución Basado en Directivas
+## 3. Directive-Based Execution Flow
 
-En lugar de delegar la orquestación a un planificador complejo, Yapu introduce una **Directiva de Sistema** almacenada en `.antigravity/workflows/execute.md`.
+Instead of delegating orchestration to a complex planner, Yapu introduces a **System Directive** stored in `.antigravity/workflows/execute.md`.
 
-Cuando Antigravity CLI invoca un agente para completar código, este carga el workflow `execute.md`, el cual fuerza al agente a seguir estas reglas estrictas:
-1. **Foco Absoluto**: Consultar `STATE.md` para identificar la tarea marcada como pendiente `[ ]`. El agente tiene prohibido trabajar en tareas fuera del scope activo.
-2. **Uso de Skills Nativas**: Utilizar las herramientas de Antigravity CLI (`fs_read`, `fs_write`, `shell_exec`, etc.) únicamente para resolver la tarea seleccionada.
-3. **Autoverificación Obligatoria**: Correr tests locales y validar sintaxis/compilación antes de dar por buena la implementación.
-4. **Registro de Progreso**: Marcar la tarea con `[x]` en `STATE.md` y actualizar las notas de contexto de ejecución si surgen descubrimientos relevantes.
+When Antigravity CLI invokes an agent to complete code, it loads the `execute.md` workflow, which forces the agent to follow these strict rules:
+1. **Absolute Focus**: Consult `STATE.md` to identify the task marked as pending `[ ]`. The agent is forbidden from working on tasks outside the active scope.
+2. **Use of Native Skills**: Use Antigravity CLI tools (`fs_read`, `fs_write`, `shell_exec`, etc.) solely to resolve the selected task.
+3. **Mandatory Self-Verification**: Run local tests and validate syntax/compilation before considering the implementation successful.
+4. **Progress Logging**: Mark the task as completed `[x]` in `STATE.md` and update execution context notes if relevant discoveries arise.
