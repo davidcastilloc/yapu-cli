@@ -3,13 +3,45 @@
   "version": "1.0.0",
   "description": "Un framework de ingeniería de contexto y estructuración de memoria estática para Antigravity CLI. El nido que sostiene a Antigravity en el aire.",
   "main": "index.js",
+  "files": [
+    "bin",
+    "lib",
+    "templates",
+    "index.js",
+    "README.md",
+    "README.es.md",
+    "CONTRIBUTING.md",
+    "CONTRIBUTING.es.md",
+    "CODE_OF_CONDUCT.md",
+    "CODE_OF_CONDUCT.es.md",
+    "SECURITY.md",
+    "SECURITY.es.md",
+    "LICENSE"
+  ],
   "bin": {
     "yapu": "./bin/cli.js"
   },
   "scripts": {
     "test": "node --test tests/**/*.test.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "prepublishOnly": "npm run test && npm run lint"
   },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "antigravity",
+    "cli",
+    "context-engineering",
+    "meta-prompting",
+    "static-memory",
+    "ai-collaboration",
+    "conoto",
+    "yapu"
+  ],
   "type": "module",
   "author": "David Castillo <vikruzdavid@gmail.com>",
   "license": "MIT",

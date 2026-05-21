@@ -150,21 +150,76 @@ El hook validará PROJECT.md en cada commit.
 
 ---
 
-## 5. `yapu sync`
+## 5. `yapu health`
+
+Valida la integridad de la colonia (el espacio de trabajo YapuCli).
+
+### Uso
+
+```bash
+yapu health
+```
+
+### Comportamiento
+
+- **Valida archivos de memoria raíz**: PROJECT.md, ROADMAP.md, STATE.md.
+- **Valida estructura del nido (.planning/)**: verifica que la carpeta exista y contenga los 10 subdirectorios reglamentarios (`codebase`, `phases`, `debug`, etc.).
+- **Valida especificaciones base**: verifica existencia de STATE.md, ROADMAP.md, REQUIREMENTS.md, METHODOLOGY.md y config.json en .planning/.
+- **Valida sintaxis JSON**: analiza que `.planning/config.json` tenga un formato JSON válido y libre de errores sintácticos.
+- **Valida Yapu Guard**: revisa si el hook de pre-commit está instalado en `.git/hooks/pre-commit` y si cuenta con permisos de ejecución.
+- **Valida consistencia semántica**: verifica que `STATE.md` contenga las declaraciones de `FASE ACTIVA` y `MODO DE OPERACIÓN ACTUAL`.
+- Retorna código de salida `0` si el espacio de trabajo es 100% saludable, o `1` si detecta errores críticos que requieran reparación.
+
+### Ejemplo de salida
+
+```
+=== 🪺 YAPU WORKSPACE HEALTH CHECK ===
+
+[+] Checking core memory files...
+  ✅ PROJECT.md exists
+  ✅ ROADMAP.md exists
+  ✅ STATE.md exists
+
+[+] Checking .planning/ colony structure...
+  ✅ .planning/ directory exists
+  ✅ All 10 required subdirectories exist
+  ✅ .planning/STATE.md exists
+  ✅ .planning/ROADMAP.md exists
+  ✅ .planning/REQUIREMENTS.md exists
+  ✅ .planning/METHODOLOGY.md exists
+  ✅ .planning/config.json exists
+  ✅ config.json has valid JSON format
+
+[+] Checking Yapu Guard (Git Hooks)...
+  ✅ Active git repository detected
+  ✅ Pre-commit hook installed at .git/hooks/pre-commit
+  ✅ Pre-commit hook is executable
+
+[+] Checking Memory Integrity...
+  ✅ Operational mode declared in STATE.md
+  ✅ Active phase declared in STATE.md
+
+=============================================
+🔥 Workspace is 100% HEALTHY! The colony is thriving. 🪺
+```
+
+---
+
+## 6. `yapu sync`
 
 Sincroniza artefactos desde un directorio brain de Antigravity al proyecto.
 
 ### Uso
 
 ```bash
-yapu sync --brain-path <ruta>
+yapu sync [--brain-path <ruta>]
 ```
 
 ### Parámetros
 
 | Parámetro | Requerido | Descripción |
 |---|---|---|
-| `--brain-path` | Sí | Ruta al directorio brain de Antigravity |
+| `--brain-path` | No | Ruta al directorio brain de Antigravity (si se omite, se auto-detecta la sesión activa) |
 
 ### Comportamiento
 
@@ -199,7 +254,7 @@ yapu sync --brain-path <ruta>
 
 ---
 
-## 6. `yapu handoff`
+## 7. `yapu handoff`
 
 Genera archivos de traspaso para continuar el trabajo en otra sesión o contexto.
 
@@ -213,7 +268,7 @@ yapu handoff [--brain-path <ruta>]
 
 | Parámetro | Requerido | Descripción |
 |---|---|---|
-| `--brain-path` | No | Ruta al directorio brain para contexto adicional |
+| `--brain-path` | No | Ruta al directorio brain para contexto adicional (si se omite, se auto-detecta la sesión activa) |
 
 ### Comportamiento
 
@@ -243,27 +298,27 @@ yapu handoff [--brain-path <ruta>]
 
 ---
 
-## 7. `yapu brain`
+## 8. `yapu brain`
 
 Inspecciona el contenido de un directorio brain de Antigravity. Tiene dos subcomandos: `list` y `log`.
 
 ---
 
-### 7.1 `yapu brain list`
+### 8.1 `yapu brain list`
 
 Lista los artefactos almacenados en un directorio brain.
 
 #### Uso
 
 ```bash
-yapu brain list --path <ruta>
+yapu brain list [--path <ruta>]
 ```
 
 #### Parámetros
 
 | Parámetro | Requerido | Descripción |
 |---|---|---|
-| `--path` | Sí | Ruta al directorio brain |
+| `--path` | No | Ruta al directorio brain (si se omite, se auto-detecta la sesión activa) |
 
 #### Comportamiento
 
@@ -295,21 +350,21 @@ yapu brain list --path <ruta>
 
 ---
 
-### 7.2 `yapu brain log`
+### 8.2 `yapu brain log`
 
 Muestra las entradas recientes del log de conversación.
 
 #### Uso
 
 ```bash
-yapu brain log --path <ruta> [-n N]
+yapu brain log [--path <ruta>] [-n N]
 ```
 
 #### Parámetros
 
 | Parámetro | Requerido | Descripción |
 |---|---|---|
-| `--path` | Sí | Ruta al directorio brain |
+| `--path` | No | Ruta al directorio brain (si se omite, se auto-detecta la sesión activa) |
 | `-n` | No | Número de entradas a mostrar (por defecto: 20) |
 
 #### Comportamiento
@@ -355,11 +410,12 @@ Uso: yapu <comando> [opciones]
 Comandos disponibles:
   init            Inicializa la estructura de planificación
   status          Muestra el estado actual del proyecto
+  health          Valida la integridad del espacio de trabajo
   archive         Archiva tareas completadas
   install-hooks   Instala git hooks de validación
-  sync            Sincroniza artefactos desde brain
-  handoff         Genera archivos de traspaso
-  brain           Inspecciona directorio brain (list, log)
+  sync            Sincroniza artefactos desde brain (auto-detectado)
+  handoff         Genera archivos de traspaso (auto-detectado)
+  brain           Inspecciona directorio brain (list, log) (auto-detectado)
 
 Ejecuta 'yapu <comando> --help' para más información sobre un comando.
 ```

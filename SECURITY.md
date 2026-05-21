@@ -1,29 +1,33 @@
-# Política de Seguridad - YapuCli
+<p align="center">
+  <strong>🇻🇪 <a href="SECURITY.es.md">Leer en Español</a></strong>
+</p>
 
-## Reportar una Vulnerabilidad
+# Security Policy - YapuCli
 
-**Por favor, no reportes vulnerabilidades de seguridad a través de incidencias públicas de GitHub.**
+## Reporting a Vulnerability
 
-En su lugar, envía un reporte de seguridad por correo electrónico a: **vikruzdavid@gmail.com**
+**Please do not report security vulnerabilities through public GitHub issues.**
 
-Por favor incluye:
-- Una descripción detallada de la vulnerabilidad.
-- Pasos precisos para reproducir el problema.
-- El impacto potencial en los entornos de ejecución.
-- Sugerencias de solución o mitigación (opcional).
+Instead, please send a security report via email to: **vikruzdavid@gmail.com**
 
-## Tiempos de Respuesta y Resolución
+Please include:
+- A detailed description of the vulnerability.
+- Precise steps to reproduce the issue.
+- The potential impact on runtime environments.
+- Suggestions for a fix or mitigation (optional).
 
-- **Acuse de recibo**: En menos de 48 horas laborables.
-- **Evaluación inicial**: En un plazo máximo de 1 semana.
-- **Plazo de corrección**: Varía según la gravedad estimada:
-  - Crítica: Entre 24 y 48 horas.
-  - Alta: En un plazo de 1 semana.
-  - Media/Baja: Incluido en el siguiente release programado.
+## Response and Resolution Times
 
-## Alcance (Scope)
+- **Acknowledgment of receipt**: Within 48 working hours.
+- **Initial evaluation**: Within a maximum of 1 week.
+- **Remediation timeframe**: Varies according to the estimated severity:
+  - Critical: Between 24 and 48 hours.
+  - High: Within 1 week.
+  - Medium/Low: Included in the next scheduled release.
 
-Esta política cubre las vulnerabilidades identificadas en el framework Yapu que puedan:
-- Permitir la ejecución de código arbitrario no autorizado en máquinas de usuarios.
-- Comprometer claves API o credenciales locales de Antigravity CLI.
-- Corromper el contexto estático del proyecto (`PROJECT.md`, `ROADMAP.md`, `STATE.md`).
+## Scope
+
+This policy covers vulnerabilities identified in the Yapu framework that could:
+- Allow unauthorized arbitrary code execution on user machines.
+- Compromise API keys or local credentials of Antigravity CLI.
+- Corrupt the project's static context (`PROJECT.md`, `ROADMAP.md`, `STATE.md`).

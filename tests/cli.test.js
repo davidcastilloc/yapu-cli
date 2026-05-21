@@ -217,12 +217,13 @@ Notas de prueba.
         try {
             execSync(`node ${cliPath} sync`, {
                 cwd: tempDir,
+                env: { ...process.env, HOME: path.join(tempDir, 'empty-home') },
                 encoding: 'utf8',
                 stdio: 'pipe'
             });
             assert.fail('Should have thrown');
         } catch (err) {
-            assert.ok(err.stderr.includes('yapu sync --brain-path') || err.stdout.includes('yapu sync --brain-path'));
+            assert.ok(err.stderr && (err.stderr.includes('yapu sync --brain-path') || err.stdout.includes('yapu sync --brain-path')));
         }
     });
 
@@ -286,5 +287,62 @@ Notas de prueba.
         assert.ok(output.includes('YAPU BRAIN INSPECTOR'));
         assert.ok(output.includes('walkthrough'));
         assert.ok(output.includes('WALKTHROUGH'));
+    });
+
+    test('yapu health reports healthy workspace after init and hooks installation', () => {
+        execSync(`node ${cliPath} init`, { cwd: tempDir, encoding: 'utf8' });
+        
+        const mockGitDir = path.join(tempDir, '.git');
+        if (!fs.existsSync(mockGitDir)) {
+            fs.mkdirSync(mockGitDir, { recursive: true });
+        }
+        execSync(`node ${cliPath} install-hooks`, { cwd: tempDir, encoding: 'utf8' });
+
+        const output = execSync(`node ${cliPath} health`, {
+            cwd: tempDir,
+            encoding: 'utf8'
+        });
+
+        assert.ok(output.includes('YAPU WORKSPACE HEALTH CHECK'));
+        assert.ok(output.includes('PROJECT.md exists'));
+        assert.ok(output.includes('ROADMAP.md exists'));
+        assert.ok(output.includes('STATE.md exists'));
+        assert.ok(output.includes('Workspace is 100% HEALTHY'));
+    });
+
+    test('Auto-detecta correctamente el brainPath activo basándose en mtime', () => {
+        const mockHome = path.join(tempDir, 'mock-home');
+        const brainBaseDir = path.join(mockHome, '.gemini', 'antigravity-cli', 'brain');
+        fs.mkdirSync(brainBaseDir, { recursive: true });
+
+        const brain1 = path.join(brainBaseDir, 'uuid-older');
+        const brain2 = path.join(brainBaseDir, 'uuid-newer');
+        fs.mkdirSync(brain1, { recursive: true });
+        fs.mkdirSync(brain2, { recursive: true });
+
+        const logDir1 = path.join(brain1, '.system_generated', 'logs');
+        const logDir2 = path.join(brain2, '.system_generated', 'logs');
+        fs.mkdirSync(logDir1, { recursive: true });
+        fs.mkdirSync(logDir2, { recursive: true });
+
+        fs.writeFileSync(path.join(logDir1, 'transcript.jsonl'), 'Older log content', 'utf8');
+        fs.writeFileSync(path.join(logDir2, 'transcript.jsonl'), 'Newer log content', 'utf8');
+
+        const now = Date.now();
+        fs.utimesSync(path.join(logDir1, 'transcript.jsonl'), new Date(now - 10000), new Date(now - 10000));
+        fs.utimesSync(path.join(logDir2, 'transcript.jsonl'), new Date(now), new Date(now));
+
+        const mockProjectDir = path.join(tempDir, 'mock-project');
+        fs.mkdirSync(mockProjectDir, { recursive: true });
+        execSync(`node ${cliPath} init`, { cwd: mockProjectDir, encoding: 'utf8' });
+
+        const output = execSync(`node ${cliPath} sync`, {
+            cwd: mockProjectDir,
+            env: { ...process.env, HOME: mockHome },
+            encoding: 'utf8'
+        });
+
+        assert.ok(output.includes('Active brain auto-detected'));
+        assert.ok(output.includes('uuid-newer'));
     });
 });

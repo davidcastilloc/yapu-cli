@@ -1,39 +1,45 @@
-# Código de Conducta del Contribuyente 🪺
+<p align="center">
+  <strong>🇻🇪 <a href="CODE_OF_CONDUCT.es.md">Leer en Español</a></strong>
+</p>
 
-## Nuestro Compromiso
+# Contributor Covenant Code of Conduct 🪺
 
-En el interés de fomentar un ambiente abierto y acogedor, nosotros como contribuyentes y mantenedores nos comprometemos a hacer de la participación en nuestro proyecto y nuestra comunidad una experiencia libre de acoso para todos, independientemente de la edad, tamaño corporal, discapacidad, etnia, identidad y expresión de género, nivel de experiencia, nacionalidad, apariencia personal, raza, religión, o identidad y orientación sexual.
+## Our Pledge
 
-## Nuestros Estándares
+We as contributors and maintainers pledge to making participation in our project and our community a harassment-free experience for everyone, regardless of age, body size, visible or invisible disability, ethnicity, sex characteristics, gender identity and expression, level of experience, education, socio-economic status, nationality, personal appearance, race, caste, color, religion, or sexual identity and orientation.
 
-Ejemplos de comportamiento que contribuye a crear un ambiente positivo:
+We pledge to act and interact in ways that contribute to an open, welcoming, diverse, inclusive, and healthy community.
 
-- Usar un lenguaje acogedor e inclusivo
-- Respetar los diferentes puntos de vista y experiencias
-- Aceptar con gracia las críticas constructivas
-- Enfocarse en lo que es mejor para la comunidad
-- Mostrar empatía hacia otros miembros de la comunidad
+## Our Standards
 
-Ejemplos de comportamiento inaceptable:
+Examples of behavior that contributes to a positive environment for our community include:
 
-- El uso de lenguaje o imágenes sexualizadas y atención sexual no deseada
-- Trolling, comentarios insultantes/despectivos, y ataques personales o políticos
-- Acoso público o privado
-- Publicar información privada de terceros sin su consentimiento explícito
-- Otra conducta que razonablemente podría considerarse inapropiada en un entorno profesional
+- Demonstrating empathy and kindness toward other people
+- Being respectful of differing opinions, viewpoints, and experiences
+- Giving and gracefully accepting constructive feedback
+- Accepting responsibility and apologizing to those affected by our mistakes, and learning from the experience
+- Focusing on what is best for the overall community
 
-## Nuestras Responsabilidades
+Examples of unacceptable behavior include:
 
-Los mantenedores del proyecto son responsables de clarificar los estándares de comportamiento aceptable y se espera que tomen acciones correctivas apropiadas y justas en respuesta a cualquier instancia de comportamiento inaceptable.
+- The use of sexualized language or imagery, and unwelcome sexual attention or advances
+- Trolling, insulting or derogatory comments, and personal or political attacks
+- Public or private harassment
+- Publishing others' private information, such as a physical or email address, without their explicit permission
+- Other conduct which could reasonably be considered inappropriate in a professional setting
 
-## Alcance
+## Enforcement Responsibilities
 
-Este código de conducta aplica tanto dentro de los espacios del proyecto como en espacios públicos cuando un individuo está representando el proyecto o su comunidad.
+Project maintainers are responsible for clarifying and enforcing our standards of acceptable behavior and will take appropriate, fair corrective action in response to any behavior they deem inappropriate, threatening, offensive, or harmful.
 
-## Aplicación
+## Scope
 
-Instancias de comportamiento abusivo, acosador o de otra manera inaceptable pueden ser reportadas contactando al equipo del proyecto en **vikruzdavid@gmail.com**. Todas las quejas serán revisadas e investigadas y resultarán en una respuesta que se considere necesaria y apropiada a las circunstancias.
+This Code of Conduct applies within all project spaces, and also applies when an individual is officially representing the project in public spaces.
 
-## Atribución
+## Enforcement
 
-Este Código de Conducta es una adaptación del [Contributor Covenant](https://www.contributor-covenant.org), versión 2.1.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team at **vikruzdavid@gmail.com**. All complaints will be reviewed and investigated promptly and fairly.
+
+## Attribution
+
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1.

@@ -2,83 +2,87 @@
   <img src="yapu-banner.png" alt="YapuCli — Context Engineering Framework" width="600">
 </p>
 
+<p align="center">
+  <strong>🇻🇪 <a href="README.es.md">Leer en Español</a></strong>
+</p>
+
 # YapuCli 🪺
 
-**Framework de ingeniería de contexto y memoria estática para Antigravity CLI.**
-Conectado directamente al brain de Antigravity.
+**Context engineering and static memory framework for Antigravity CLI.**
+Directly connected to the Antigravity brain.
 
-> Inspirado en el **yapú** (*Psarocolius decumanus*), ave venezolana que teje nidos colgantes de más de un metro que desafían la gravedad.
-> Antigravity es el árbol — Yapu teje el nido de memoria. 🪺
+> Inspired by the **yapú** (*Psarocolius decumanus*), a Venezuelan bird that weaves hanging nests over a meter long that defy gravity.
+> Antigravity is the tree — Yapu weaves the memory nest. 🪺
 
 ---
 
-## 🚀 Instalación
+## 🚀 Installation
 
 ```bash
 npm install -g yapu-cli
 ```
 
-**Zero dependencies** — solo `node:fs` y `node:path`.
+**Zero dependencies** — only `node:fs` and `node:path`.
 
 ---
 
-## 🧠 Memoria Dual — La Arquitectura Central
+## 🧠 Dual Memory — The Core Architecture
 
-El brain de Antigravity es **efímero** (por conversación). El directorio `.planning/` es **persistente** (por proyecto, vive en git). Yapu es el puente que sincroniza ambos mundos.
+The Antigravity brain is **ephemeral** (per conversation). The `.planning/` directory is **persistent** (per project, lives in git). Yapu is the bridge that synchronizes both worlds.
 
 ```
 ┌─────────────────────────┐       yapu sync        ┌─────────────────────────┐
 │   🧠 Antigravity Brain  │ ◄────────────────────► │   🪺 .planning/         │
-│   (efímero, por sesión) │       yapu handoff      │   (persistente, en git) │
+│   (ephemeral, per session)│       yapu handoff      │   (persistent, in git)  │
 └────────────┬────────────┘                         └────────────┬────────────┘
              │                                                   │
              │            ┌───────────────────┐                  │
-             └───────────►│  Tríada de Memoria │◄────────────────┘
+             └───────────►│    Memory Triad   │◄─────────────────┘
                           │  PROJECT · ROADMAP │
                           │      · STATE       │
                           └───────────────────┘
 ```
 
-**Sync automático:** cada workflow tiene bloques **Pre-Sync** (lee estado heredado) y **Post-Sync** (persiste progreso). El LLM nunca pierde el hilo entre sesiones.
+**Automatic Sync:** Every workflow features embedded **Pre-Sync** (reads inherited state) and **Post-Sync** (persists progress) blocks. The LLM never loses track between sessions.
 
 ---
 
-## 📜 La Tríada de Memoria
+## 📜 The Memory Triad
 
-| Archivo         | Rol                  | Descripción                                                     |
+| File            | Role                 | Description                                                     |
 |-----------------|----------------------|-----------------------------------------------------------------|
-| `PROJECT.md`    | 🏛️ La Visión        | Stack, reglas arquitectónicas y mandamientos intocables.         |
-| `ROADMAP.md`    | 🗺️ El Plan Macro    | Fases secuenciales del proyecto. Prohibido saltar de fase.       |
-| `STATE.md`      | ⚡ Estado Operativo  | Modo activo, fase actual y tareas técnicas de corta duración.    |
+| `PROJECT.md`    | 🏛️ The Vision         | Stack, architectural rules, and untouchable commandments.       |
+| `ROADMAP.md`    | 🗺️ The Macro Plan     | Sequential project phases. Skipping phases is strictly forbidden. |
+| `STATE.md`      | ⚡ Operating State    | Active mode, current phase, and short-term technical tasks.     |
 
 ---
 
-## 🛠️ Comandos del CLI (7)
+## 🛠️ CLI Commands (7)
 
 ```bash
-yapu init              # 🪺 Funda la colonia (.planning/ + skills completos)
-yapu status            # 📊 Radiografía del proyecto
-yapu archive           # 📦 Fin de temporada (congela tareas en HISTORY.md)
-yapu install-hooks     # 🐝 Despliega el avispero (Yapu Guard)
-yapu sync              # 🔄 Sincroniza brain de Antigravity → .planning/
-yapu handoff           # 🤝 Genera handoff para la siguiente sesión
-yapu brain <list|log>  # 🔍 Inspecciona el brain de Antigravity
+yapu init              # 🪺 Found the colony (.planning/ + complete skills)
+yapu status            # 📊 Project x-ray / health check
+yapu archive           # 📦 End of season (freezes tasks into HISTORY.md)
+yapu install-hooks     # 🐝 Deploy the swarm (Yapu Guard)
+yapu sync              # 🔄 Sync Antigravity brain → .planning/
+yapu handoff           # 🤝 Generate handoff for the next session
+yapu brain <list|log>  # 🔍 Inspect the Antigravity brain
 ```
 
-### Detalle de Comandos
+### Command Details
 
-- **`yapu init`** — Scaffolds `.planning/` con 11 subdirectorios + 5 archivos base. Copia 41 workflows, 25 referencias, 3 contextos y 5 plantillas de codebase a `.agents/skills/`. También copia `PROJECT.md`, `ROADMAP.md` y `STATE.md` a la raíz del proyecto. Nunca sobreescribe archivos existentes.
-- **`yapu status`** — Lee `STATE.md` y reporta modo operacional, fase activa, lista de tareas e integridad de specs.
-- **`yapu archive`** — Congela tareas completadas de `STATE.md` en `HISTORY.md` con marca de tiempo.
-- **`yapu install-hooks`** — Despliega **Yapu Guard**, hook pre-commit nativo ultrarrápido (<1.5s).
-- **`yapu sync --brain-path <path>`** — Fallback manual: sincroniza artefactos del brain de Antigravity a `.planning/`.
-- **`yapu handoff`** — Genera `HANDOFF.json` + `.continue-here.md` para continuidad de sesión.
-- **`yapu brain list --path <path>`** — Lista artefactos del brain con tipo, resumen y fecha.
-- **`yapu brain log --path <path> -n N`** — Muestra las últimas N entradas del log de conversación.
+- **`yapu init`** — Scaffolds `.planning/` with 11 subdirectories + 5 base files. Copies 41 workflows, 25 references, 3 contexts, and 5 codebase templates to `.agents/skills/`. Also copies `PROJECT.md`, `ROADMAP.md`, and `STATE.md` to the project root. Never overwrites existing files.
+- **`yapu status`** — Reads `STATE.md` and reports the operational mode, active phase, task checklist, and spec integrity.
+- **`yapu archive`** — Freezes completed tasks from `STATE.md` into `HISTORY.md` with timestamps.
+- **`yapu install-hooks`** — Deploys **Yapu Guard**, an ultra-fast (<1.5s) native pre-commit hook.
+- **`yapu sync --brain-path <path>`** — Manual fallback: synchronizes artifacts from the Antigravity brain to `.planning/`.
+- **`yapu handoff`** — Generates `HANDOFF.json` + `.continue-here.md` for seamless session continuity.
+- **`yapu brain list --path <path>`** — Lists brain artifacts along with their type, summary, and date.
+- **`yapu brain log --path <path> -n N`** — Displays the last N entries of the conversation log.
 
 ---
 
-## 📂 Estructura de `.planning/`
+## 📂 Structure of `.planning/`
 
 ```
 .planning/
@@ -87,10 +91,10 @@ yapu brain <list|log>  # 🔍 Inspecciona el brain de Antigravity
 ├── REQUIREMENTS.md
 ├── METHODOLOGY.md
 ├── config.json
-├── codebase/       # 7 docs de análisis (generados por yapu-map)
-├── phases/         # CONTEXT.md, PLAN.md, SUMMARY.md por fase
-├── debug/          # Tracking de sesiones de debug
-├── seeds/          # Ideas forward-looking
+├── codebase/       # 7 analysis docs (generated by yapu-map)
+├── phases/         # CONTEXT.md, PLAN.md, SUMMARY.md per phase
+├── debug/          # Debugging session tracking
+├── seeds/          # Forward-looking ideas
 ├── notes/
 ├── todos/
 ├── research/
@@ -100,47 +104,47 @@ yapu brain <list|log>  # 🔍 Inspecciona el brain de Antigravity
 
 ---
 
-## ⚡ Arsenal de Skills (85 archivos)
+## ⚡ Skill Arsenal (85 files)
 
-**41 workflows · 11 schemas · 25 referencias · 3 contextos · 5 plantillas de codebase**
+**41 workflows · 11 schemas · 25 references · 3 contexts · 5 codebase templates**
 
-### 1. Flujo Base 🪺
+### 1. Base Flow 🪺
 `map` · `plan` · `execute` · `verify`
 
-### 2. Interrogación (Grill) 🔥
+### 2. Grill & Spec 🔥
 `grill-me` · `grill-docs` · `spec`
 
-### 3. Escuadrones de Élite 🎯
+### 3. Elite Squads 🎯
 `secops` · `dba` · `ui` · `forensics`
 
-### 4. Descubrimiento 🔬
+### 4. Discovery 🔬
 `discovery` · `discuss` · `research`
 
-### 5. Gestión de Sesión 📋
+### 5. Session Management 📋
 `resume` · `progress` · `session-report` · `handoff`
 
-### 6. Utilidades 🔧
+### 6. Utilities 🔧
 `debug` · `seed` · `quick` · `thread` · `health` · `audit` · `code-review` · `docs` · `tests` · `undo` · `ship` · `sketch` · `autonomous` · `learnings`
 
 ---
 
-## 🧪 Tests e Infraestructura
+## 🧪 Tests & Infrastructure
 
-10/10 pruebas de integración · ESLint clean
+10/10 integration tests passing · ESLint clean
 
 ```bash
-npm run test    # Suite completa de integración
-npm run lint    # Validación estática
+npm run test    # Full integration test suite
+npm run lint    # Static validation
 ```
 
 ---
 
-## 🪺 Filosofía
+## 🪺 Philosophy
 
-> *El yapú no improvisa: cada fibra del nido tiene un propósito estructural.*
+> *The yapú does not improvise: every fiber of the nest has a structural purpose.*
 
-Yapu aplica el mismo principio al contexto del LLM — memoria estática explícita, sincronización determinista y cero dependencias externas. El agente siempre sabe dónde está, qué hizo y qué sigue.
+Yapu applies this exact principle to the LLM context — explicit static memory, deterministic synchronization, and zero external dependencies. The agent always knows where it is, what it did, and what comes next.
 
 ---
 
-<p align="center"><strong>YapuCli 🪺</strong> — El nido que desafía la gravedad.</p>
+<p align="center"><strong>YapuCli 🪺</strong> — The nest that defies gravity.</p>

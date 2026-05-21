@@ -1,174 +1,178 @@
-# Guía de Contribución — YapuCli 🪺
+<p align="center">
+  <strong>🇻🇪 <a href="CONTRIBUTING.es.md">Leer en Español</a></strong>
+</p>
 
-¡Gracias por tu interés en contribuir a YapuCli! Este documento describe cómo puedes colaborar con el proyecto.
+# Contribution Guide — YapuCli 🪺
+
+Thank you for your interest in contributing to YapuCli! This document outlines how you can collaborate with the project.
 
 ---
 
-## 🚀 Inicio Rápido
+## 🚀 Quick Start
 
 ```bash
-# 1. Fork el repositorio
+# 1. Fork the repository
 gh repo fork davidcastilloc/yapu-cli --clone
 
-# 2. Instala las dependencias de desarrollo
+# 2. Install development dependencies
 cd yapu-cli
 npm install
 
-# 3. Crea una rama para tu cambio
-git checkout -b feat/mi-nueva-feature
+# 3. Create a branch for your changes
+git checkout -b feat/my-new-feature
 
-# 4. Haz tus cambios y verifica
+# 4. Make your changes and verify
 npm run test
 npm run lint
 
-# 5. Haz commit y push
+# 5. Commit and push
 git add -A
-git commit -m "feat: descripción del cambio"
-git push origin feat/mi-nueva-feature
+git commit -m "feat: description of the change"
+git push origin feat/my-new-feature
 
-# 6. Abre un Pull Request en GitHub
+# 6. Open a Pull Request on GitHub
 gh pr create
 ```
 
 ---
 
-## 📋 Tipos de Contribuciones
+## 📋 Types of Contributions
 
-### 🐛 Reportar Bugs
-- Usa la plantilla de [Bug Report](https://github.com/davidcastilloc/yapu-cli/issues/new?template=bug_report.md)
-- Incluye pasos para reproducir, comportamiento esperado vs actual, y tu entorno (Node.js, OS)
+### 🐛 Reporting Bugs
+- Use the [Bug Report](https://github.com/davidcastilloc/yapu-cli/issues/new?template=bug_report.md) template.
+- Include reproduction steps, expected vs. actual behavior, and details about your environment (Node.js, OS).
 
-### 💡 Proponer Features
-- Usa la plantilla de [Feature Request](https://github.com/davidcastilloc/yapu-cli/issues/new?template=feature_request.md)
-- Describe el problema que resuelve y la solución propuesta
+### 💡 Proposing Features
+- Use the [Feature Request](https://github.com/davidcastilloc/yapu-cli/issues/new?template=feature_request.md) template.
+- Describe the problem it solves and your proposed solution.
 
-### 📝 Mejorar Documentación
-- Typos, clarificaciones, ejemplos adicionales — todo es bienvenido
-- La documentación vive en `docs/`, `README.md`, y los templates en `templates/`
+### 📝 Improving Documentation
+- Typos, clarifications, additional examples — all are welcome.
+- Documentation resides in `docs/`, `README.md`, and templates in `templates/`.
 
-### 🔧 Contribuir Código
-- Nuevos comandos CLI, mejoras al módulo `lib/artifacts.js`, nuevos workflows
+### 🔧 Contributing Code
+- New CLI commands, enhancements to the `lib/artifacts.js` bridge module, or new workflows.
 
 ---
 
-## 🏗️ Estructura del Proyecto
+## 🏗️ Project Structure
 
 ```
 yapu-cli/
-├── bin/cli.js              # CLI principal (7 comandos)
-├── lib/artifacts.js        # Módulo bridge con el brain de Antigravity
-├── index.js                # Entry point del paquete
-├── templates/              # Plantillas desplegadas por yapu init
-│   ├── yapu-*.md           # 41 workflows con Pre/Post-Sync
-│   ├── yapu-*-schema.md    # 11 schemas de artifacts
-│   ├── references/         # 25 archivos de referencia
-│   ├── contexts/           # 3 contextos operacionales
-│   └── codebase/           # 5 templates de análisis
-├── tests/cli.test.js       # Tests de integración (10 tests)
-├── docs/                   # Documentación
-│   ├── COMMANDS.md          # Referencia de los 7 comandos
-│   ├── ARCHITECTURE.md      # Arquitectura del framework
-│   └── USER-GUIDE.md        # Guía de usuario
-└── .github/                # Configuración de GitHub
+├── bin/cli.js              # Main CLI entry point (7 commands)
+├── lib/artifacts.js        # Bridge module with the Antigravity brain
+├── index.js                # Package entry point
+├── templates/              # Templates deployed by yapu init
+│   ├── yapu-*.md           # 41 workflows with Pre/Post-Sync
+│   ├── yapu-*-schema.md    # 11 artifact schemas
+│   ├── references/         # 25 reference files
+│   ├── contexts/           # 3 operational contexts
+│   └── codebase/           # 5 analysis templates
+├── tests/cli.test.js       # Integration tests (10 tests)
+├── docs/                   # Documentation
+│   ├── COMMANDS.md          # 7 commands reference guide
+│   ├── ARCHITECTURE.md      # Framework architecture document
+│   └── USER-GUIDE.md        # User guide
+└── .github/                # GitHub configuration
 ```
 
 ---
 
-## ✅ Requisitos para Pull Requests
+## ✅ Pull Request Requirements
 
-### Antes de enviar tu PR:
+### Before submitting your PR:
 
-1. **Tests pasan**: `npm run test` → 0 fallos
-2. **Lint limpio**: `npm run lint` → 0 errores
-3. **Sin referencias prohibidas**: No usar los términos `tether`, `GSD`, o `get-shit-done`
-4. **Documentación actualizada**: Si agregas un comando o workflow, documéntalo
-5. **Sin dependencias de producción**: YapuCli tiene **cero dependencias** — solo `node:fs` y `node:path`. Mantén esto así.
+1. **All tests must pass**: `npm run test` → 0 failures
+2. **Clean linter**: `npm run lint` → 0 errors
+3. **No forbidden terms**: Do not use the words `tether`, `GSD`, or `get-shit-done`.
+4. **Updated documentation**: If you add a command or workflow, please document it.
+5. **No production dependencies**: YapuCli has **zero dependencies** — utilizing only `node:fs` and `node:path`. Let's keep it that way.
 
-### Convención de commits:
+### Commit message convention:
 
 ```
-feat: nueva funcionalidad
-fix: corrección de bug
-docs: cambios en documentación
-refactor: refactorización sin cambio de comportamiento
-test: agregar o modificar tests
-chore: tareas de mantenimiento
+feat: new feature
+fix: bug fix
+docs: documentation changes
+refactor: code refactoring without behavior changes
+test: adding or modifying tests
+chore: maintenance tasks
 ```
 
-Ejemplos:
+Examples:
 ```
-feat: agregar comando yapu health para validación de workspace
-fix: corregir parseo de STATE.md cuando no tiene fase activa
-docs: documentar yapu brain log en COMMANDS.md
-test: agregar test para syncBrainToPlanning con brain vacío
+feat: add yapu health command for workspace validation
+fix: resolve STATE.md parsing when no active phase is set
+docs: document yapu brain log in COMMANDS.md
+test: add test case for syncBrainToPlanning with empty brain
 ```
 
 ---
 
-## 🔀 Flujo de Trabajo
+## 🔀 Workflow
 
 ```
-  Tu fork                        Repo principal
-  ────────                       ──────────────
+  Your Fork                      Main Repository
+  ─────────                      ───────────────
   
   1. Fork ──────────────────────► davidcastilloc/yapu-cli
-  2. Clone a tu máquina
-  3. Crea rama feat/xxx
-  4. Desarrolla + tests + lint
-  5. Push a tu fork
-  6. Abre PR ──────────────────► Review por mantenedor
-  7. Feedback / Aprobación
-  8. Merge ◄──────────────────── ¡Tu código está en main!
+  2. Clone to your machine
+  3. Create branch feat/xxx
+  4. Develop + tests + lint
+  5. Push to your fork
+  6. Open PR ───────────────────► Review by maintainer
+  7. Feedback / Approval
+  8. Merge ◄───────────────────── Your code is now in main!
 ```
 
 ---
 
-## 🧪 Cómo Ejecutar Tests
+## 🧪 How to Run Tests
 
 ```bash
-# Tests de integración
+# Run integration tests
 npm run test
 
-# Linter
+# Run static linter
 npm run lint
 
-# Probar un comando específico
+# Test a specific command locally
 node bin/cli.js init
 node bin/cli.js status
-node bin/cli.js brain list --path /ruta/al/brain
+node bin/cli.js brain list --path /path/to/brain
 ```
 
 ---
 
-## 📐 Guías de Estilo
+## 📐 Style Guides
 
-- **JavaScript**: ES Modules (`import`/`export`), single quotes, sin punto y coma
-- **Markdown**: Español para documentación del proyecto
-- **Emojis**: Usa 🪺 para branding de Yapu, no ⚓
-- **Workflows**: Si creas un nuevo workflow, incluye los bloques `§ Pre-Sync` y `§ Post-Sync`
+- **JavaScript**: ES Modules (`import`/`export`), single quotes, no semicolons.
+- **Markdown**: Use Spanish for in-project reference documentation (e.g. `docs/`).
+- **Emojis**: Always use 🪺 for Yapu branding instead of ⚓.
+- **Workflows**: If you create a new workflow template, make sure it includes the standard `§ Pre-Sync` and `§ Post-Sync` blocks.
 
 ---
 
-## 🪺 Áreas que Necesitan Ayuda
+## 🪺 Areas Needing Help
 
-| Área | Descripción | Dificultad |
+| Area | Description | Difficulty |
 |------|-------------|------------|
-| `yapu health` | Comando para validar integridad del workspace | 🟡 Media |
-| Auto-detección de `brainPath` | Detectar el brain de Antigravity sin `--brain-path` | 🔴 Alta |
-| Tests unitarios de `lib/artifacts.js` | Tests directos del módulo (no solo integration) | 🟢 Baja |
-| Traducciones | README y docs en inglés | 🟢 Baja |
-| Nuevos workflows | Templates para casos de uso específicos | 🟡 Media |
+| `yapu health` | Command to validate workspace and project structure integrity | 🟡 Medium |
+| `brainPath` Auto-detection | Automatically locate the Antigravity brain without needing `--brain-path` | 🔴 High |
+| Unit tests for `lib/artifacts.js` | Dedicated unit tests for the module (not just CLI-level integration tests) | 🟢 Low |
+| Translations | Documentation and workflows in English | 🟢 Low |
+| New Workflows | Custom agent workflow templates for specific use-cases | 🟡 Medium |
 
 ---
 
-## 💬 Contacto
+## 💬 Contact
 
 - **Issues**: [github.com/davidcastilloc/yapu-cli/issues](https://github.com/davidcastilloc/yapu-cli/issues)
 - **Email**: vikruzdavid@gmail.com
-- **Autor**: David Castillo ([@davidcastilloc](https://github.com/davidcastilloc))
+- **Author**: David Castillo ([@davidcastilloc](https://github.com/davidcastilloc))
 
 ---
 
-## 📜 Licencia
+## 📜 License
 
-Al contribuir a YapuCli, aceptas que tus contribuciones serán licenciadas bajo la misma [licencia MIT](LICENSE) del proyecto.
+By contributing to YapuCli, you agree that your contributions will be licensed under the project's [MIT License](LICENSE).
