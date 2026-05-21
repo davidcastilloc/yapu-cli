@@ -345,4 +345,26 @@ Notas de prueba.
         assert.ok(output.includes('Active brain auto-detected'));
         assert.ok(output.includes('uuid-newer'));
     });
+
+    test('yapu menu ejecuta de forma no interactiva fuera de TTY', () => {
+        const output = execSync(`node ${cliPath} menu`, {
+            cwd: tempDir,
+            encoding: 'utf8'
+        });
+
+        assert.ok(output.includes('YAPUCLI COMMAND MENU (Modo No Interactivo)'));
+        assert.ok(output.includes('Sincronizar Colonia (yapu sync)'));
+        assert.ok(output.includes('Diagnóstico de Salud (yapu health)'));
+    });
+
+    test('yapu dashboard ejecuta de forma no interactiva fuera de TTY (alias)', () => {
+        const output = execSync(`node ${cliPath} dashboard`, {
+            cwd: tempDir,
+            encoding: 'utf8'
+        });
+
+        assert.ok(output.includes('YAPUCLI COMMAND MENU (Modo No Interactivo)'));
+        assert.ok(output.includes('Sincronizar Colonia (yapu sync)'));
+        assert.ok(output.includes('Diagnóstico de Salud (yapu health)'));
+    });
 });

@@ -649,9 +649,14 @@ if (command === 'init') {
         console.error('❌ Subcomando no reconocido. Usa: yapu brain <list|log> --path <ruta>');
         process.exit(1);
     }
+} else if (command === 'menu' || command === 'dashboard') {
+    const { launchMenu } = await import('../lib/menu.js');
+    await launchMenu();
 } else {
     console.log('🪺 Framework YapuCli\n');
     console.log('Uso:');
+    console.log('  yapu menu              -> Lanza el panel de control interactivo (TUI) de la colonia.');
+    console.log('  yapu dashboard         -> (Alias de yapu menu) Panel interactivo TUI.');
     console.log('  yapu init              -> Funda la colonia (.planning/ + skills completos).');
     console.log('  yapu status            -> Radiografía del proyecto.');
     console.log('  yapu health            -> Valida la integridad del espacio de trabajo.');

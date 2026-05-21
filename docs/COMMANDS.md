@@ -394,6 +394,61 @@ yapu brain log [--path <ruta>] [-n N]
 
 ---
 
+## 9. `yapu menu` / `yapu dashboard`
+
+Lanza el panel de control interactivo en terminal (TUI) de la colonia.
+
+### Uso
+
+```bash
+yapu menu
+yapu dashboard
+```
+
+### Comportamiento
+
+- **Modo Interactivo (TTY)**:
+  - Captura eventos del teclado en modo Raw de stdin.
+  - Renderiza una interfaz de usuario estética en terminal (TUI) con bordes ANSI y colores temáticos de la naturaleza.
+  - Presenta un resumen del nido en tiempo real cargado dinámicamente de `STATE.md` (Modo, Fase Activa, Tareas completadas/totales, Estado de Yapu Guard, y archivos de especificaciones raíz).
+  - Permite navegar con las flechas direccionales (`↑` / `↓`) y presionar `Enter` para lanzar los comandos (`sync`, `health`, `archive`, `handoff`, `status`, `brain list`, `install-hooks`).
+  - Al ejecutar una acción, muestra su salida directamente y provee una pausa interactiva ("Presiona cualquier tecla para regresar al panel...") para retornar fluidamente al menú.
+  - Restaura de forma limpia el estado del cursor y el flujo de la terminal al salir (`q`, `Esc`, `Ctrl+C`).
+- **Modo No Interactivo (fuera de TTY/Entorno de Tests)**:
+  - Detecta la ausencia de TTY y muestra un resumen textual estático e informativo de los comandos sin suspender el proceso, previniendo cuelgues en entornos automatizados o pipelines de CI/CD.
+
+### Ejemplo de interfaz interactiva
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  🪺  C O N O T O   -   Y A P U C L I   D A S H B O A R D   │
+└──────────────────────────────────────────────────────────────┘
+📂 Nido Activo: /home/davidc/Documentos/DONE/yapu-cli
+────────────────────────────────────────────────────────────────
+📋 ESTADO DEL PROYECTO
+  ├ Modo Operativo : BUILD
+  ├ Fase Activa    : Fase 3 - Pruebas y Validación
+  ├ Tareas Activas : 12/14 completadas (86%)
+  ├ Yapu Guard Hook: ACTIVO
+  └ Especificaciones: PROJECT.md (OK) | ROADMAP.md (OK)
+────────────────────────────────────────────────────────────────
+🛠️  ACCIONES DISPONIBLES (Navega con ↑/↓ y presiona Enter)
+
+  👉  Sincronizar Colonia (yapu sync) 
+     Diagnóstico de Salud (yapu health)
+     Archivar Tareas Completadas (yapu archive)
+     Preparar Handoff de Sesión (yapu handoff)
+     Ver Estado Detallado (yapu status)
+     Inspeccionar Brain (yapu brain list)
+     Instalar Yapu Guard Hooks (yapu install-hooks)
+     Salir del Avispero
+
+────────────────────────────────────────────────────────────────
+Instrucciones: ↑/↓ Navegar | Enter Seleccionar | Esc/q Salir
+```
+
+---
+
 ## Ayuda General
 
 Al ejecutar `yapu` sin argumentos se muestra la pantalla de ayuda con todos los comandos disponibles:
