@@ -4,7 +4,7 @@
 
 **Por favor, no reportes vulnerabilidades de seguridad a través de incidencias públicas de GitHub.**
 
-En su lugar, envía un reporte de seguridad por correo electrónico a: **security@yapu-cli.dev**
+En su lugar, envía un reporte de seguridad por correo electrónico a: **vikruzdavid@gmail.com**
 
 Por favor incluye:
 - Una descripción detallada de la vulnerabilidad.

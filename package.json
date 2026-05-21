@@ -11,9 +11,17 @@
     "lint": "eslint ."
   },
   "type": "module",
-  "author": "",
+  "author": "David Castillo <vikruzdavid@gmail.com>",
   "license": "MIT",
   "devDependencies": {
     "eslint": "^10.4.0"
-  }
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/davidcastilloc/yapu-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/davidcastilloc/yapu-cli/issues"
+  },
+  "homepage": "https://github.com/davidcastilloc/yapu-cli#readme"
 }
