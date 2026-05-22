@@ -149,6 +149,33 @@ node bin/cli.js brain list --path /path/to/brain
 
 ---
 
+## 🦋 Releases & Versioning
+
+This project uses **Changesets** to manage versioning and package publishing.
+
+### 1. Documenting your changes
+If you are submitting a PR that includes a user-facing change (bugfix, feature, chore), you MUST add a changeset file:
+```bash
+npm run changeset
+```
+This interactive prompt will ask:
+- Which package is affected (select `@davidsd/yapu-cli`).
+- The bump type: **major** (breaking changes), **minor** (new features), or **patch** (bugfixes).
+- A short summary of the changes (this summary will be added directly to `CHANGELOG.md`).
+
+Commit the generated `.changeset/*.md` file along with your PR.
+
+### 2. Automated Releases
+Once a PR is merged into `main`:
+- A GitHub Actions workflow automatically checks for new changeset files.
+- If changesets exist, it creates or updates a **"Version Packages" Pull Request**.
+- When that PR is merged by a maintainer:
+  1. It automatically bumps the version in `package.json` and updates `CHANGELOG.md`.
+  2. It publishes the new version to **NPM**.
+  3. It creates a corresponding GitHub Release.
+
+---
+
 ## 📐 Style Guides
 
 - **JavaScript**: ES Modules (`import`/`export`), single quotes, no semicolons.

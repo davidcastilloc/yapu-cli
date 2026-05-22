@@ -149,6 +149,33 @@ node bin/cli.js brain list --path /ruta/al/brain
 
 ---
 
+## 🦋 Releases y Versiones
+
+Este proyecto utiliza **Changesets** para gestionar las versiones y la publicación del paquete npm.
+
+### 1. Documentar tus cambios
+Si envías un Pull Request (PR) que incluya cambios visibles para el usuario (correcciones, nuevas funciones, refactorizaciones importantes), DEBES agregar un archivo de changeset:
+```bash
+npm run changeset
+```
+El asistente interactivo te preguntará:
+- Qué paquete está afectado (selecciona `@davidsd/yapu-cli`).
+- El tipo de incremento: **major** (cambios disruptivos / breaking changes), **minor** (nuevas características), o **patch** (correcciones de errores).
+- Un breve resumen del cambio (este texto irá directo a `CHANGELOG.md`).
+
+Confirma e incluye el archivo generado `.changeset/*.md` dentro de tu PR.
+
+### 2. Publicación Automatizada
+Una vez que un PR se fusiona en la rama `main`:
+- Un workflow de GitHub Actions busca nuevos archivos changeset.
+- Si existen changesets, crea o actualiza un Pull Request llamado **"Version Packages"**.
+- Cuando un administrador fusiona ese PR:
+  1. Se actualizan automáticamente las versiones en `package.json` y se genera el archivo `CHANGELOG.md`.
+  2. Se publica la nueva versión en **NPM**.
+  3. Se crea una versión/release correspondiente en GitHub de forma automatizada.
+
+---
+
 ## 📐 Guías de Estilo
 
 - **JavaScript**: ES Modules (`import`/`export`), single quotes, sin punto y coma

@@ -26,7 +26,10 @@
   "scripts": {
     "test": "c8 node --test tests/cli.test.js",
     "lint": "eslint .",
-    "prepublishOnly": "npm run test && npm run lint"
+    "prepublishOnly": "npm run test && npm run lint",
+    "changeset": "changeset",
+    "version": "changeset version",
+    "release": "changeset publish"
   },
   "publishConfig": {
     "access": "public"
@@ -48,6 +51,7 @@
   "author": "David Castillo <vikruzdavid@gmail.com>",
   "license": "MIT",
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "c8": "^11.0.0",
     "eslint": "^8.57.1"
   },
