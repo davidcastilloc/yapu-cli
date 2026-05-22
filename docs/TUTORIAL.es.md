@@ -23,16 +23,41 @@ Para que no pierdan tiempo repitiendo lo mismo, tú y tu asistente usan un **cua
 
 Para usar YapuCli, necesitas tener instalado [Node.js](https://nodejs.org/) en tu computadora.
 
-No necesitas instalar nada de forma permanente si no quieres. Puedes ejecutar Yapu directamente usando `npx`, que es como pedirle prestada la herramienta a internet cada vez que la usas:
+<!-- tabs:start -->
+#### **npx (sin instalar)**
 
-```bash
-npx @davidsd/yapu-cli init
+No necesitas instalar nada de forma permanente. Puedes ejecutar Yapu directamente usando `npx`, que es como pedirle prestada la herramienta a internet cada vez que la usas:
+
+```termynal
+$ npx @davidsd/yapu-cli init
+🪺 Initializing YapuCli...
+--
+✅ .planning/ directory scaffolded.
+✅ STATE.md initialized.
+✅ ROADMAP.md initialized.
+🪺 Deploying complete arsenal of fibers...
+🔥 10 workflows loaded in .agents/skills/
 ```
 
-*Si prefieres instalarlo de forma global en tu sistema para usar el comando directo `yapu`, corre:*
-```bash
-npm install -g @davidsd/yapu-cli
+#### **Instalación global**
+
+Si prefieres instalarlo de forma global en tu sistema para usar el comando directo `yapu`:
+
+```termynal
+$ npm install -g @davidsd/yapu-cli
+added 1 package in 3s
+--
+$ yapu init
+🪺 Initializing YapuCli...
+--
+✅ .planning/ directory scaffolded.
+✅ STATE.md initialized.
+✅ ROADMAP.md initialized.
+🪺 Deploying complete arsenal of fibers...
+🔥 10 workflows loaded in .agents/skills/
 ```
+
+<!-- tabs:end -->
 
 ---
 
@@ -40,13 +65,20 @@ npm install -g @davidsd/yapu-cli
 
 1. Abre tu terminal o consola.
 2. Crea una carpeta nueva para tu proyecto y entra en ella:
-   ```bash
-   mkdir mi-primer-proyecto
-   cd mi-primer-proyecto
+   ```termynal
+   $ mkdir mi-primer-proyecto
+   $ cd mi-primer-proyecto
    ```
 3. Ejecuta el comando de inicialización de Yapu:
-   ```bash
-   npx @davidsd/yapu-cli init
+   ```termynal
+   $ npx @davidsd/yapu-cli init
+   🪺 Initializing YapuCli...
+   --
+   ✅ .planning/ directory scaffolded.
+   ✅ STATE.md initialized.
+   ✅ ROADMAP.md initialized.
+   🪺 Deploying complete arsenal of fibers...
+   🔥 10 workflows loaded in .agents/skills/
    ```
 
 **¡Magia!** Verás que en tu carpeta han aparecido tres archivos principales (`PROJECT.md`, `ROADMAP.md`, `STATE.md`) y una carpeta llamada `.planning/` que es donde Yapu guarda la memoria técnica.
@@ -64,7 +96,8 @@ Abre el archivo `PROJECT.md` en tu editor de código (como VS Code o Cursor). Ve
   * "Usa variables CSS para los colores para que sea fácil cambiarlos".
   * "Escribe comentarios en español explicando qué hace cada función".
 
-*Al escribir esto, tu IA asistente sabrá exactamente cómo escribir el código sin que tengas que recordárselo en cada prompt.*
+> [!TIP]
+> Al escribir esto, tu IA asistente sabrá exactamente cómo escribir el código sin que tengas que recordárselo en cada prompt.
 
 ---
 
@@ -85,11 +118,18 @@ La programación es más fácil cuando divides un problema grande en partes pequ
 
 Aquí está el secreto para empezar el día como un programador profesional utilizando Inteligencia Artificial.
 
-### 1. ☕ La Mañana: El Arranque
+<!-- tabs:start -->
+#### **☕ La Mañana: El Arranque**
+
 Al encender la computadora y abrir tu editor de código:
-* Abre tu terminal y escribe:
-  ```bash
-  npx @davidsd/yapu-cli status
+* Abre tu terminal y revisa tu estado:
+  ```termynal
+  $ npx @davidsd/yapu-cli status
+  🪺 YapuCli Status
+  --
+  📋 Active Phase: Phase 1
+  ✅ Completed: 2/5 tasks
+  ⏳ Pending: 3 tasks
   ```
   Esto te dará una radiografía rápida en la terminal de qué estás haciendo y en qué fase vas.
 * Abre `STATE.md`. Este es tu plan del día. Configura tu fase activa y añade las tareas específicas para hoy.
@@ -100,8 +140,11 @@ Al encender la computadora y abrir tu editor de código:
   - [ ] Agregar el formulario de entrada de texto.
   ```
 
-### 2. 🤖 Durante el Día: Programando con tu IA
+#### **🤖 Durante el Día: Programando con tu IA**
+
 Cuando abras tu chat con la IA (Cursor, Cline, o la que uses), dale este prompt inicial:
+
+> [!NOTE]
 > *"Hola. Vamos a empezar a programar. Lee los archivos `PROJECT.md`, `ROADMAP.md` y `STATE.md` para entender las reglas de nuestra app, el plan general y en qué tarea estamos trabajando hoy. ¡Por favor, toma la primera tarea pendiente de `STATE.md` y desarrollemos el código!"*
 
 La IA leerá tus directivas y se pondrá a programar. A medida que la IA complete el código:
@@ -109,38 +152,66 @@ La IA leerá tus directivas y se pondrá a programar. A medida que la IA complet
 2. Una vez que verifiques que el código funciona, la IA **tachará la tarea** en `STATE.md` cambiando `[ ]` por `[x]`.
 3. Tú verás el cambio en vivo.
 
-*Si quieres supervisar todo en tiempo real de una forma súper genial, abre otra terminal y corre:*
-```bash
-npx @davidsd/yapu-cli dash
-```
-*¡Verás una interfaz de monitor estilo hacker que se actualiza sola mientras la IA va tachando las tareas!*
+> [!TIP]
+> Si quieres supervisar todo en tiempo real de una forma súper genial, abre otra terminal y corre:
 
-*¿Quieres algo aún más poderoso? Lanza el **Command Center** en tu navegador:*
-```bash
-npx @davidsd/yapu-cli board
+```termynal
+$ npx @davidsd/yapu-cli dash
+🪺 YapuCli Dashboard v1.0
+--
+Loading neural activity...
 ```
-*¡Esto abre un dashboard web premium donde puedes ver tareas, actividad neuronal de tu IA, e incluso ejecutar comandos yapu con un solo clic — todo desde tu navegador!*
 
-### 🌌 3. La Noche: Guardar tu Progreso (El Handoff)
+¡Verás una interfaz de monitor estilo hacker que se actualiza sola mientras la IA va tachando las tareas!
+
+> [!TIP]
+> ¿Quieres algo aún más poderoso? Lanza el **Command Center** en tu navegador:
+
+```termynal
+$ npx @davidsd/yapu-cli board
+🪺 Command Center launching...
+--
+🌐 Open http://localhost:3333 in your browser
+```
+
+¡Esto abre un dashboard web premium donde puedes ver tareas, actividad neuronal de tu IA, e incluso ejecutar comandos yapu con un solo clic — todo desde tu navegador!
+
+#### **🌌 La Noche: Guardar tu Progreso (El Handoff)**
+
 Cuando decidas que es hora de descansar o terminar por hoy, necesitas dejar un **marcapáginas** en tu libro de desarrollo para que al día siguiente (o si le prestas tu código a otro programador) sepas exactamente dónde te quedaste.
 
 Ejecuta en tu terminal:
-```bash
-npx @davidsd/yapu-cli handoff
+
+```termynal
+$ npx @davidsd/yapu-cli handoff
+🪺 Generating handoff report...
+--
+✅ .continue-here.md generated.
+📋 3 tasks completed today.
+📝 2 files modified.
 ```
+
 Yapu generará un archivo llamado `.continue-here.md` que resume exactamente:
 * Qué lograste terminar hoy.
 * Qué archivos se modificaron.
 * Qué tarea quedó a medias o debe ser la primera en retomarse mañana.
 
-Al día siguiente, solo tendrás que decirle a tu IA: *"Lee `.continue-here.md` y continuemos"* y volverás a entrar en la zona al instante.
+> [!NOTE]
+> Al día siguiente, solo tendrás que decirle a tu IA: *"Lee `.continue-here.md` y continuemos"* y volverás a entrar en la zona al instante.
+
+<!-- tabs:end -->
 
 ---
 
 ## 💡 Consejos de Oro para Principiantes
 
-1. **Una sola cosa a la vez**: Nunca intentes programar la Fase 1 y la Fase 3 juntas. Sigue el orden estricto de tu `ROADMAP.md`.
-2. **Prueba rápido**: Cada vez que la IA escriba una función o un trozo de código, pruébalo en tu navegador. No dejes que la IA escriba 100 líneas sin verificar que las primeras 10 funcionan.
-3. **No borres el cuaderno**: Mantén siempre actualizados `STATE.md` y `PROJECT.md`. Si decides cambiar un color o una regla de tu proyecto, modifícalo en `PROJECT.md` para que la IA no vuelva a usar la regla vieja.
+> [!TIP]
+> **Una sola cosa a la vez**: Nunca intentes programar la Fase 1 y la Fase 3 juntas. Sigue el orden estricto de tu `ROADMAP.md`.
+
+> [!TIP]
+> **Prueba rápido**: Cada vez que la IA escriba una función o un trozo de código, pruébalo en tu navegador. No dejes que la IA escriba 100 líneas sin verificar que las primeras 10 funcionan.
+
+> [!WARNING]
+> **No borres el cuaderno**: Mantén siempre actualizados `STATE.md` y `PROJECT.md`. Si decides cambiar un color o una regla de tu proyecto, modifícalo en `PROJECT.md` para que la IA no vuelva a usar la regla vieja.
 
 ¡Listo! Con esta rutina, programar con Inteligencia Artificial ya no se sentirá caótico. YapuCli te mantendrá siempre con el control total de tu proyecto. ¡Feliz programación! 🪺
