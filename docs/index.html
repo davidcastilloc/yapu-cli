@@ -226,6 +226,13 @@
   </style>
 </head>
 <body>
+  <script>
+    // Set active language immediately to prevent flashing content
+    (function() {
+      const savedLang = localStorage.getItem('yapu-lang') || (navigator.language.startsWith('es') ? 'es' : 'en');
+      document.body.classList.add('lang-' + savedLang);
+    })();
+  </script>
   <div id="app">Cargando el cerebro de Yapu...</div>
   
   <script>
@@ -243,6 +250,28 @@
           btn.classList.remove('active');
         }
       });
+
+      // Handle multi-language redirection seamlessly
+      const currentHash = window.location.hash;
+      if (lang === 'es') {
+        if (!currentHash || currentHash === '#/' || currentHash === '#/README' || currentHash === '#/README.md') {
+          window.location.hash = '#/README.es.md';
+        } else if (currentHash.endsWith('.md') && !currentHash.endsWith('.es.md')) {
+          const newHash = currentHash.replace(/\.md$/, '.es.md');
+          if (newHash !== currentHash) {
+            window.location.hash = newHash;
+          }
+        }
+      } else {
+        if (currentHash === '#/README.es.md') {
+          window.location.hash = '#/README.md';
+        } else if (currentHash.endsWith('.es.md')) {
+          const newHash = currentHash.replace(/\.es\.md$/, '.md');
+          if (newHash !== currentHash) {
+            window.location.hash = newHash;
+          }
+        }
+      }
     };
 
     window.$docsify = {
