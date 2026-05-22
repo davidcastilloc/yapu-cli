@@ -864,23 +864,34 @@ setTimeout(() => {
             stdio: 'pipe'
         });
 
-        // Let the daemon start and print its watching status
-        let daemonOutput = '';
-        daemonProcess.stdout.on('data', (data) => {
-            daemonOutput += data.toString();
-        });
-
         // Wait until the daemon prints that it's watching (event-driven, not fixed timeout)
+        let daemonOutput = '';
+        let daemonStarted = false;
+
         await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Daemon startup timeout')), 5000);
-            const check = () => {
-                if (daemonOutput.includes('Observando cambios en')) {
+            
+            const checkOutput = () => {
+                if (daemonOutput.includes('Observando cambios en') && !daemonStarted) {
                     clearTimeout(timeout);
+                    daemonStarted = true;
                     resolve();
                 }
             };
-            daemonProcess.stdout.on('data', check);
-            check(); // Check if already received
+
+            // Attach listener BEFORE the daemon produces output
+            daemonProcess.stdout.on('data', (data) => {
+                daemonOutput += data.toString();
+                checkOutput();
+            });
+
+            daemonProcess.stderr.on('data', (data) => {
+                daemonOutput += data.toString();
+                checkOutput();
+            });
+
+            // Check if data already arrived
+            checkOutput();
         });
 
         // Create an artifact in mockBrainDir
@@ -897,8 +908,8 @@ setTimeout(() => {
         fs.writeFileSync(mdPath, planContent, 'utf8');
         fs.writeFileSync(metaPath, planMeta, 'utf8');
 
-        // Wait for the debounced sync (300ms debounce + generous padding for CI)
-        await new Promise(resolve => setTimeout(resolve, 2000));
+        // Wait longer for the debounced sync (300ms debounce + file I/O + generous padding)
+        await new Promise(resolve => setTimeout(resolve, 3000));
 
         // Stop the daemon process cleanly
         daemonProcess.kill('SIGINT');
