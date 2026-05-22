@@ -13,6 +13,35 @@
   <strong>Zero dependencias externas</strong> — Construido nativamente con <code>node:fs</code> y <code>node:path</code>.
 </p>
 
+## 🚀 Inicio Rápido (Onboarding en 60 Segundos)
+
+### 1. Instalación y Fundación
+Entra en la carpeta de tu proyecto y ejecuta el inicializador de Yapu:
+
+```bash
+npx @davidsd/yapu-cli init
+```
+
+*Esto creará en tu raíz los archivos esenciales de memoria estática (`PROJECT.md`, `ROADMAP.md`, `STATE.md`) y la carpeta `.planning/`.*
+
+### 2. Alinear a tu IA
+Abre tu chat de IA (Cursor, Cline, Windsurf, etc.) e inícialo con este prompt exacto:
+
+> **Prompt inicial:** "Lee los archivos `PROJECT.md`, `ROADMAP.md` y `STATE.md` para entender las reglas de nuestra aplicación, el plan general y en qué tarea estamos trabajando hoy. ¡Por favor, toma la primera tarea pendiente de `STATE.md` y desarrollemos el código!"
+
+### 3. Monitoreo en Tiempo Real
+Mientras tu IA escribe y tacha tareas en vivo (`[x]`), puedes abrir una segunda terminal y correr el monitor interactivo:
+
+```bash
+npx @davidsd/yapu-cli dash
+```
+
+*¡Verás una interfaz TUI ultra-rápida y fluida estilo Matrix actualizándose con tu progreso en tiempo real!*
+
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 45px 0;">
+
+## 🏛️ Explora la Colonia (Documentación Detallada)
+
 <div class="cards-grid">
   <a href="#/TUTORIAL.es.md" class="card-item">
     <div class="card-icon">🐣</div>
@@ -50,30 +79,3 @@
     <p class="card-desc">Carga este prompt en tu IA para que asimile todas las reglas de Yapu de forma 100% automatizada.</p>
   </a>
 </div>
-
-<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 40px 0;">
-
-## 🚀 Inicio Rápido (Onboarding en 60 Segundos)
-
-### 1. Instalación y Fundación
-Entra en la carpeta de tu proyecto y ejecuta el inicializador de Yapu:
-
-```bash
-npx @davidsd/yapu-cli init
-```
-
-*Esto creará en tu raíz los archivos esenciales de memoria estática (`PROJECT.md`, `ROADMAP.md`, `STATE.md`) y la carpeta `.planning/`.*
-
-### 2. Alinear a tu IA
-Abre tu chat de IA (Cursor, Cline, Windsurf, etc.) e inícialo con este prompt exacto:
-
-> **Prompt inicial:** "Lee los archivos `PROJECT.md`, `ROADMAP.md` y `STATE.md` para entender las reglas de nuestra aplicación, el plan general y en qué tarea estamos trabajando hoy. ¡Por favor, toma la primera tarea pendiente de `STATE.md` y desarrollemos el código!"
-
-### 3. Monitoreo en Tiempo Real
-Mientras tu IA escribe y tacha tareas en vivo (`[x]`), puedes abrir una segunda terminal y correr el monitor interactivo:
-
-```bash
-npx @davidsd/yapu-cli dash
-```
-
-*¡Verás una interfaz TUI ultra-rápida y fluida estilo Matrix actualizándose con tu progreso en tiempo real!*

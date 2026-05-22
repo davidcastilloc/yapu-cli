@@ -13,6 +13,35 @@
   <strong>Zero external dependencies</strong> — Built natively using <code>node:fs</code> and <code>node:path</code>.
 </p>
 
+## 🚀 Quick Start (60-Second Onboarding)
+
+### 1. Installation & Foundation
+Go into your project directory and run the Yapu initializer:
+
+```bash
+npx @davidsd/yapu-cli init
+```
+
+*This scaffolds the core static memory files (`PROJECT.md`, `ROADMAP.md`, `STATE.md`) along with the `.planning/` directory.*
+
+### 2. Align Your AI
+Open your AI chat interface (Cursor, Cline, Windsurf, etc.) and kick off the session with this exact prompt:
+
+> **Initial Prompt:** "Read the `PROJECT.md`, `ROADMAP.md`, and `STATE.md` files to understand our application's rules, the general roadmap, and today's active tasks. Please grab the first pending task from `STATE.md` and let's start writing some code!"
+
+### 3. Real-Time Dashboard
+As your AI assistant codes and checks off tasks (`[x]`), you can open a secondary terminal to run the interactive dashboard:
+
+```bash
+npx @davidsd/yapu-cli dash
+```
+
+*Enjoy a beautiful, zero-dependency TUI dashboard showing week's worth of progress in real time!*
+
+<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 45px 0;">
+
+## 🏛️ Explore the Colony (Detailed Documentation)
+
 <div class="cards-grid">
   <a href="#/TUTORIAL.md" class="card-item">
     <div class="card-icon">🐣</div>
@@ -50,30 +79,3 @@
     <p class="card-desc">Feed this prompt to your AI assistant so it assimilates all Yapu rules 100% autonomously.</p>
   </a>
 </div>
-
-<hr style="border: 0; border-top: 1px solid rgba(255,255,255,0.08); margin: 40px 0;">
-
-## 🚀 Quick Start (60-Second Onboarding)
-
-### 1. Installation & Foundation
-Go into your project directory and run the Yapu initializer:
-
-```bash
-npx @davidsd/yapu-cli init
-```
-
-*This scaffolds the core static memory files (`PROJECT.md`, `ROADMAP.md`, `STATE.md`) along with the `.planning/` directory.*
-
-### 2. Align Your AI
-Open your AI chat interface (Cursor, Cline, Windsurf, etc.) and kick off the session with this exact prompt:
-
-> **Initial Prompt:** "Read the `PROJECT.md`, `ROADMAP.md`, and `STATE.md` files to understand our application's rules, the general roadmap, and today's active tasks. Please grab the first pending task from `STATE.md` and let's start writing some code!"
-
-### 3. Real-Time Dashboard
-As your AI assistant codes and checks off tasks (`[x]`), you can open a secondary terminal to run the interactive dashboard:
-
-```bash
-npx @davidsd/yapu-cli dash
-```
-
-*Enjoy a beautiful, zero-dependency TUI dashboard showing week's worth of progress in real time!*
