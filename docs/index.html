@@ -7,6 +7,11 @@
   <meta name="description" content="Framework de ingeniería de contexto y memoria estática para LLMs">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
   
+  <!-- Google Fonts: Outfit (headings), Inter (body), Fira Code (monospace) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
+
   <!-- Beautiful dark theme from docsify -->
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/docsify-themeable@0/dist/css/theme-simple-dark.css">
   
@@ -16,29 +21,207 @@
       --theme-color: #f39c12;
       --base-font-size: 16px;
       --heading-color: #f1c40f;
-      --sidebar-background: #111;
-      --code-block-background: #000;
+      --sidebar-background: #0f1012;
+      --sidebar-width: 290px;
+      --content-max-width: 900px;
+      --code-block-background: #070709;
       --code-font-family: 'Fira Code', Consolas, Monaco, monospace;
     }
     
     body {
-      background-color: #1a1a1a;
+      background-color: #0a0a0c;
       color: #eaeaea;
       font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     }
     
-    .app-name-link img {
-      width: 100%;
-      border-radius: 8px;
-      margin-bottom: 20px;
+    /* App name styling */
+    .app-name {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 800;
+      font-size: 1.5rem;
+      letter-spacing: -0.5px;
+      color: #f1c40f;
+      text-shadow: 0 0 10px rgba(241, 196, 15, 0.2);
     }
     
-    /* Subtle glow for links */
+    .app-name-link img {
+      width: 85%;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5));
+    }
+    
+    /* Sidebar Customizations */
+    .sidebar {
+      border-right: 1px solid rgba(255, 255, 255, 0.05);
+      background-color: #0f1012 !important;
+    }
+    .sidebar-nav {
+      padding: 10px 20px !important;
+    }
+    
+    /* Modern scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.1);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(243, 156, 18, 0.25);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(243, 156, 18, 0.55);
+    }
+
+    /* Language Switcher Container */
+    .lang-switcher {
+      display: flex;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 30px;
+      padding: 3px;
+      margin: 15px 0 25px 0;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .lang-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: #888;
+      padding: 8px 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .lang-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.02);
+    }
+    .lang-btn.active {
+      background: linear-gradient(135deg, #f39c12, #d35400);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(243, 156, 18, 0.25);
+    }
+
+    /* Hide/show based on language classes on body */
+    body.lang-es .lang-section-en,
+    body.lang-es .content-en {
+      display: none !important;
+    }
+    body.lang-en .lang-section-es,
+    body.lang-en .content-es {
+      display: none !important;
+    }
+
+    /* Navigation Link Hover */
     a {
       transition: all 0.2s ease;
     }
     a:hover {
-      text-shadow: 0 0 8px rgba(243, 156, 18, 0.4);
+      text-shadow: 0 0 8px rgba(243, 156, 18, 0.3);
+    }
+    
+    .sidebar-nav li a {
+      font-size: 0.92rem;
+      padding: 8px 12px !important;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+    }
+    .sidebar-nav li a:hover {
+      background: rgba(243, 156, 18, 0.05) !important;
+      color: #f1c40f !important;
+    }
+    .sidebar-nav li.active > a {
+      background: rgba(243, 156, 18, 0.1) !important;
+      color: #f1c40f !important;
+      font-weight: 600;
+      border-left: 3px solid #f39c12;
+      border-radius: 0 6px 6px 0;
+      padding-left: 9px !important;
+    }
+
+    /* Style titles */
+    h1, h2, h3, h4 {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      color: #f1c40f;
+    }
+    h1 {
+      font-size: 2.2rem;
+      background: linear-gradient(135deg, #fff 40%, #f1c40f 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 25px;
+    }
+    h2 {
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 8px;
+      margin-top: 35px;
+    }
+    
+    /* Premium Blockquote */
+    blockquote {
+      border-left: 4px solid #f39c12 !important;
+      background: rgba(243, 156, 18, 0.03) !important;
+      padding: 15px 20px !important;
+      border-radius: 4px;
+      color: #ccc !important;
+      margin: 25px 0 !important;
+    }
+    
+    /* Code & Syntax Highlighting */
+    code {
+      background-color: rgba(255, 255, 255, 0.05) !important;
+      color: #f1c40f !important;
+      padding: 3px 6px !important;
+      border-radius: 4px !important;
+      font-family: var(--code-font-family) !important;
+      font-size: 0.9em !important;
+    }
+    pre code {
+      background-color: transparent !important;
+      color: inherit !important;
+      padding: 0 !important;
+      font-size: 0.92em !important;
+    }
+    pre {
+      background: #060608 !important;
+      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+      border-radius: 10px !important;
+      padding: 20px !important;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    }
+    
+    /* Premium Tables */
+    table {
+      border-collapse: collapse !important;
+      width: 100% !important;
+      margin: 25px 0 !important;
+    }
+    th {
+      background-color: rgba(243, 156, 18, 0.08) !important;
+      color: #f1c40f !important;
+      font-weight: 600 !important;
+      border: 1px solid rgba(255, 255, 255, 0.08) !important;
+      padding: 12px 16px !important;
+    }
+    td {
+      border: 1px solid rgba(255, 255, 255, 0.05) !important;
+      padding: 12px 16px !important;
+      color: #ddd !important;
+    }
+    tr:nth-child(even) {
+      background-color: rgba(255, 255, 255, 0.01) !important;
     }
   </style>
 </head>
@@ -46,6 +229,22 @@
   <div id="app">Cargando el cerebro de Yapu...</div>
   
   <script>
+    // Global language switching function
+    window.setLanguage = function(lang) {
+      localStorage.setItem('yapu-lang', lang);
+      document.body.classList.remove('lang-es', 'lang-en');
+      document.body.classList.add('lang-' + lang);
+      
+      // Update all language switchers on the page
+      document.querySelectorAll('.lang-btn').forEach(btn => {
+        if (btn.classList.contains('btn-' + lang)) {
+          btn.classList.add('active');
+        } else {
+          btn.classList.remove('active');
+        }
+      });
+    };
+
     window.$docsify = {
       name: 'YapuCli 🪺',
       repo: 'davidcastilloc/yapu-cli',
@@ -59,18 +258,18 @@
         maxAge: 86400000,
         paths: 'auto',
         placeholder: {
-          '/': 'Buscar',
-          '/en/': 'Search'
+          '/': 'Buscar...',
+          '/en/': 'Search...'
         },
         noData: {
-          '/': 'No hay resultados!',
+          '/': '¡No hay resultados!',
           '/en/': 'No results!'
         }
       },
       copyCode: {
         buttonText : {
-          '/': 'Copiar al portapapeles',
-          '/en/': 'Copy to clipboard'
+          '/': 'Copiar',
+          '/en/': 'Copy'
         },
         errorText  : {
           '/': 'Error',
@@ -80,7 +279,16 @@
           '/': 'Copiado',
           '/en/': 'Copied'
         }
-      }
+      },
+      plugins: [
+        function(hook, vm) {
+          hook.doneEach(function() {
+            // Apply current language class to body on every route render
+            const savedLang = localStorage.getItem('yapu-lang') || (navigator.language.startsWith('es') ? 'es' : 'en');
+            window.setLanguage(savedLang);
+          });
+        }
+      ]
     }
   </script>
   
