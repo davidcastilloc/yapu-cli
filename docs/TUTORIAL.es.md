@@ -115,6 +115,12 @@ npx @davidsd/yapu-cli dash
 ```
 *¡Verás una interfaz de monitor estilo hacker que se actualiza sola mientras la IA va tachando las tareas!*
 
+*¿Quieres algo aún más poderoso? Lanza el **Command Center** en tu navegador:*
+```bash
+npx @davidsd/yapu-cli board
+```
+*¡Esto abre un dashboard web premium donde puedes ver tareas, actividad neuronal de tu IA, e incluso ejecutar comandos yapu con un solo clic — todo desde tu navegador!*
+
 ### 🌌 3. La Noche: Guardar tu Progreso (El Handoff)
 Cuando decidas que es hora de descansar o terminar por hoy, necesitas dejar un **marcapáginas** en tu libro de desarrollo para que al día siguiente (o si le prestas tu código a otro programador) sepas exactamente dónde te quedaste.
 

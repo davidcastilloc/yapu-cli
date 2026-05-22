@@ -394,6 +394,57 @@ yapu brain log [--path <ruta>] [-n N]
 
 ---
 
+## 10. `yapu board`
+
+Lanza el **Yapu Command Center (C2)** — un dashboard web local sin dependencias para monitoreo en tiempo real y control interactivo del proyecto.
+
+### Uso
+
+```bash
+yapu board [--port N]
+```
+
+### Parámetros
+
+| Parámetro | Requerido | Descripción |
+|---|---|---|
+| `--port` | No | Puerto HTTP del servidor local (por defecto: `4040`) |
+
+### Comportamiento
+
+- Inicia un servidor HTTP local con `node:http` y **cero dependencias externas**.
+- Sirve una interfaz web premium con tema oscuro en `http://localhost:4040`.
+- Abre automáticamente el navegador predeterminado.
+- **Streaming en tiempo real** mediante Server-Sent Events (SSE):
+  - Vigila `STATE.md` con `fs.watch` y envía actualizaciones instantáneas cuando el archivo cambia.
+  - Transmite entradas del transcript del brain (feed neuronal) de la sesión activa de Antigravity.
+  - Canaliza `stdout`/`stderr` de los comandos ejecutados hacia la consola del navegador.
+- **Gestión interactiva de tareas**: Haz clic en los checkboxes de tareas en la interfaz para alternar su estado en `STATE.md` (escrituras atómicas).
+- **Ejecución de comandos**: Ejecuta comandos yapu autorizados directamente desde la interfaz web.
+- **Seguridad**: Solo los siguientes comandos son ejecutables desde la UI (lista blanca):
+  `plan`, `execute`, `status`, `check`, `health`, `sync`, `handoff`, `snapshot`, `gc`, `rescue`.
+  Cualquier otro comando retorna `403 Forbidden`.
+
+### Diseño de la Interfaz
+
+| Panel | Contenido |
+|---|---|
+| **Izquierdo** | Fase activa, barra de progreso, checklist interactivo de tareas |
+| **Derecho** | Consola con pestañas: Feed Neuronal (logs del brain) + Salida de Proceso (resultados de comandos) |
+| **Inferior** | Barra de comandos con botones de acción (Plan, Execute, Check, Health, Sync, etc.) |
+
+### Ejemplo de Salida (Terminal)
+
+```
+🪺 Iniciando Yapu Command Center...
+🌐 C2 escuchando en http://localhost:4040
+  → http://localhost:4040
+
+  Press Ctrl+C to stop.
+```
+
+---
+
 ## Ayuda General
 
 Al ejecutar `yapu` sin argumentos se muestra la pantalla de ayuda con todos los comandos disponibles:
@@ -416,6 +467,7 @@ Comandos disponibles:
   sync            Sincroniza artefactos desde brain (auto-detectado)
   handoff         Genera archivos de traspaso (auto-detectado)
   brain           Inspecciona directorio brain (list, log) (auto-detectado)
+  board [--port N] Lanza el Command Center (C2) web interactivo
 
 Ejecuta 'yapu <comando> --help' para más información sobre un comando.
 ```

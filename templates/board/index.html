@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>YAPU Command Center</title>
+  <meta name="description" content="Yapu C2 — Local command center for AI-assisted project management">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    /* ─── Reset & Design Tokens ──────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg-primary:    #0a0a0a;
+      --bg-card:       #111111;
+      --bg-card-hover: #161616;
+      --bg-elevated:   #1a1a1a;
+      --border:        #222222;
+      --border-light:  #2a2a2a;
+      --text-primary:  #fafafa;
+      --text-secondary:#888888;
+      --text-muted:    #555555;
+      --accent:        #d4a853;
+      --accent-dim:    #b8923e;
+      --accent-glow:   rgba(212, 168, 83, 0.12);
+      --accent-glow-strong: rgba(212, 168, 83, 0.25);
+      --success:       #22c55e;
+      --success-dim:   rgba(34, 197, 94, 0.15);
+      --danger:        #ef4444;
+      --danger-dim:    rgba(239, 68, 68, 0.15);
+      --warning:       #f59e0b;
+      --font-sans:     'Inter', system-ui, -apple-system, sans-serif;
+      --font-mono:     'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+      --radius:        8px;
+      --radius-lg:     12px;
+      --transition:    150ms cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow: hidden;
+    }
+
+    /* ─── App Shell ──────────────────────────────────────────────────── */
+    #app {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      height: 100vh;
+      gap: 0;
+    }
+
+    /* ─── Header ─────────────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 24px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(180deg, rgba(212, 168, 83, 0.04) 0%, transparent 100%);
+    }
+
+    .header-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .header-brand span:first-child {
+      font-size: 20px;
+    }
+
+    .header-brand .brand-yapu {
+      color: var(--text-primary);
+    }
+
+    .header-brand .brand-c2 {
+      background: linear-gradient(135deg, var(--accent), #e8c97a);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .connection-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .connection-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--success);
+      box-shadow: 0 0 6px rgba(34, 197, 94, 0.5);
+      transition: background var(--transition), box-shadow var(--transition);
+    }
+
+    .connection-dot.disconnected {
+      background: var(--danger);
+      box-shadow: 0 0 6px rgba(239, 68, 68, 0.5);
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+
+    /* ─── Main Content ───────────────────────────────────────────────── */
+    .main {
+      display: grid;
+      grid-template-columns: minmax(340px, 1fr) 1px minmax(400px, 1.4fr);
+      overflow: hidden;
+    }
+
+    .divider {
+      background: var(--border);
+    }
+
+    /* ─── Left Panel: Tasks ──────────────────────────────────────────── */
+    .panel-tasks {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 20px 24px 16px;
+      flex-shrink: 0;
+    }
+
+    .phase-label {
+      font-size: 11px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .phase-name {
+      font-size: 16px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+      line-height: 1.4;
+    }
+
+    .progress-container {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--border-light);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-dim), var(--accent), #e8c97a);
+      border-radius: 4px;
+      transition: width 600ms cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+      animation: shimmer 2s ease-in-out infinite;
+    }
+
+    .progress-pct {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--accent);
+      min-width: 36px;
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .mode-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      background: var(--accent-glow);
+      color: var(--accent);
+      border: 1px solid rgba(212, 168, 83, 0.2);
+      margin-top: 10px;
+    }
+
+    .task-list-header {
+      padding: 0 24px 8px;
+      font-size: 10px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .task-list {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px 0;
+    }
+
+    .task-list::-webkit-scrollbar { width: 4px; }
+    .task-list::-webkit-scrollbar-track { background: transparent; }
+    .task-list::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+    .task-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 10px 24px;
+      cursor: pointer;
+      transition: background var(--transition);
+      border-left: 3px solid transparent;
+    }
+
+    .task-item:hover {
+      background: var(--bg-card-hover);
+    }
+
+    .task-item.in-progress {
+      border-left-color: var(--accent);
+      background: var(--accent-glow);
+      animation: pulse-border 2.5s ease-in-out infinite;
+    }
+
+    .task-item.completed {
+      opacity: 0.55;
+    }
+
+    .task-item.completed:hover {
+      opacity: 0.8;
+    }
+
+    .task-checkbox {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 4px;
+      border: 1.5px solid var(--border-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all var(--transition);
+      margin-top: 1px;
+      background: transparent;
+    }
+
+    .task-item:hover .task-checkbox {
+      border-color: var(--text-muted);
+    }
+
+    .task-item.completed .task-checkbox {
+      background: var(--success);
+      border-color: var(--success);
+    }
+
+    .task-item.completed .task-checkbox::after {
+      content: '✓';
+      font-size: 11px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .task-item.in-progress .task-checkbox {
+      border-color: var(--accent);
+      background: var(--accent-glow);
+    }
+
+    .task-item.in-progress .task-checkbox::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: pulse-check 1.5s ease-in-out infinite;
+    }
+
+    .task-text {
+      font-size: 13px;
+      line-height: 1.5;
+      color: var(--text-primary);
+      flex: 1;
+    }
+
+    .task-item.completed .task-text {
+      text-decoration: line-through;
+      color: var(--text-secondary);
+    }
+
+    .task-empty {
+      padding: 40px 24px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    /* ─── Right Panel: Console ────────────────────────────────────────── */
+    .panel-console {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      background: var(--bg-card);
+    }
+
+    .console-tabs {
+      display: flex;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .console-tab {
+      padding: 12px 20px;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-muted);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all var(--transition);
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+      font-family: var(--font-sans);
+    }
+
+    .console-tab:hover {
+      color: var(--text-secondary);
+    }
+
+    .console-tab.active {
+      color: var(--accent);
+      border-bottom-color: var(--accent);
+    }
+
+    .console-tab .tab-count {
+      margin-left: 6px;
+      font-size: 10px;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: var(--border-light);
+      color: var(--text-secondary);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .console-content {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .console-view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      overflow-y: auto;
+      padding: 12px 0;
+      display: none;
+    }
+
+    .console-view.active {
+      display: block;
+    }
+
+    .console-view::-webkit-scrollbar { width: 4px; }
+    .console-view::-webkit-scrollbar-track { background: transparent; }
+    .console-view::-webkit-scrollbar-thumb { background: var(--border-light); border-radius: 4px; }
+
+    .log-entry {
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
+      padding: 4px 16px;
+      font-size: 12px;
+      line-height: 1.6;
+      font-family: var(--font-mono);
+      transition: background var(--transition);
+    }
+
+    .log-entry:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .log-icon {
+      flex-shrink: 0;
+      font-size: 12px;
+      margin-top: 2px;
+    }
+
+    .log-step {
+      flex-shrink: 0;
+      color: var(--text-muted);
+      min-width: 32px;
+      font-size: 11px;
+    }
+
+    .log-type {
+      flex-shrink: 0;
+      font-size: 10px;
+      font-weight: 500;
+      padding: 1px 6px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .log-type.model {
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+    }
+
+    .log-type.user {
+      background: rgba(34, 197, 94, 0.15);
+      color: #4ade80;
+    }
+
+    .log-type.system {
+      background: rgba(245, 158, 11, 0.15);
+      color: #fbbf24;
+    }
+
+    .log-type.tool {
+      background: rgba(6, 182, 212, 0.15);
+      color: #22d3ee;
+    }
+
+    .log-content {
+      color: var(--text-secondary);
+      word-break: break-word;
+      flex: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Process output */
+    .process-line {
+      padding: 2px 16px;
+      font-size: 12px;
+      line-height: 1.7;
+      font-family: var(--font-mono);
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .process-line.stdout { color: var(--text-secondary); }
+    .process-line.stderr { color: var(--danger); }
+    .process-line.system {
+      color: var(--accent);
+      font-weight: 500;
+      padding-top: 8px;
+      padding-bottom: 4px;
+    }
+
+    .console-empty {
+      padding: 40px 16px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 12px;
+      font-family: var(--font-mono);
+    }
+
+    /* ─── Footer: Command Bar ────────────────────────────────────────── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      background: linear-gradient(0deg, rgba(212, 168, 83, 0.03) 0%, transparent 100%);
+    }
+
+    .command-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .cmd-btn {
+      font-family: var(--font-sans);
+      font-size: 12px;
+      font-weight: 500;
+      padding: 7px 16px;
+      border-radius: var(--radius);
+      border: 1px solid var(--border-light);
+      background: transparent;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all var(--transition);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .cmd-btn:hover:not(:disabled) {
+      border-color: var(--accent-dim);
+      color: var(--accent);
+      background: var(--accent-glow);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .cmd-btn:active:not(:disabled) {
+      transform: scale(0.97);
+    }
+
+    .cmd-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    .cmd-btn .btn-icon {
+      font-size: 13px;
+    }
+
+    .footer-status {
+      font-size: 11px;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      white-space: nowrap;
+    }
+
+    .status-running {
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .running-dots {
+      display: inline-flex;
+      gap: 3px;
+    }
+
+    .running-dots span {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      animation: bounce-dot 1.2s ease-in-out infinite;
+    }
+
+    .running-dots span:nth-child(2) { animation-delay: 0.15s; }
+    .running-dots span:nth-child(3) { animation-delay: 0.3s; }
+
+    /* ─── Animations ─────────────────────────────────────────────────── */
+    @keyframes shimmer {
+      0%, 100% { opacity: 0; }
+      50% { opacity: 1; }
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    @keyframes pulse-border {
+      0%, 100% { border-left-color: var(--accent); }
+      50% { border-left-color: rgba(212, 168, 83, 0.3); }
+    }
+
+    @keyframes pulse-check {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    @keyframes bounce-dot {
+      0%, 80%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-4px); }
+    }
+
+    @keyframes fade-in {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .fade-in {
+      animation: fade-in 200ms ease-out;
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 768px) {
+      .main {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr 1px 1fr;
+      }
+      .divider {
+        height: 1px;
+        width: 100%;
+      }
+      .header { padding: 10px 16px; }
+      .panel-header { padding: 16px 16px 12px; }
+      .task-item { padding: 8px 16px; }
+      .footer { padding: 10px 16px; flex-wrap: wrap; }
+      .command-bar { flex: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- ─── Header ─────────────────────────────────────────────────── -->
+    <header class="header">
+      <div class="header-brand">
+        <span>🪺</span>
+        <span class="brand-yapu">YAPU</span>
+        <span class="brand-c2">COMMAND CENTER</span>
+      </div>
+      <div class="header-status">
+        <div class="connection-indicator">
+          <div id="connectionDot" class="connection-dot"></div>
+          <span id="connectionLabel">Connected</span>
+        </div>
+        <span id="portLabel" style="color: var(--text-muted);">:4040</span>
+      </div>
+    </header>
+
+    <!-- ─── Main Content ───────────────────────────────────────────── -->
+    <main class="main">
+      <!-- Left: Tasks Panel -->
+      <section class="panel-tasks">
+        <div class="panel-header">
+          <div class="phase-label">Active Phase</div>
+          <div id="phaseName" class="phase-name">Loading...</div>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div id="progressFill" class="progress-fill" style="width: 0%"></div>
+            </div>
+            <div id="progressPct" class="progress-pct">0%</div>
+          </div>
+          <div id="modeBadge" class="mode-badge" style="display: none;"></div>
+        </div>
+        <div class="task-list-header">Tasks</div>
+        <div id="taskList" class="task-list">
+          <div class="task-empty">Connecting to server...</div>
+        </div>
+      </section>
+
+      <div class="divider"></div>
+
+      <!-- Right: Console Panel -->
+      <section class="panel-console">
+        <div class="console-tabs">
+          <button class="console-tab active" data-tab="neural" id="tabNeural">
+            🧠 Neural Feed<span id="neuralCount" class="tab-count">0</span>
+          </button>
+          <button class="console-tab" data-tab="process" id="tabProcess">
+            ⚡ Process Output<span id="processCount" class="tab-count">0</span>
+          </button>
+        </div>
+        <div class="console-content">
+          <div id="viewNeural" class="console-view active">
+            <div class="console-empty">Waiting for neural feed...</div>
+          </div>
+          <div id="viewProcess" class="console-view">
+            <div class="console-empty">No process output yet. Run a command to begin.</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ─── Footer: Command Bar ────────────────────────────────────── -->
+    <footer class="footer">
+      <div class="command-bar">
+        <button class="cmd-btn" data-cmd="plan" id="btnPlan">
+          <span class="btn-icon">📋</span> Plan
+        </button>
+        <button class="cmd-btn" data-cmd="execute" id="btnExecute">
+          <span class="btn-icon">🚀</span> Execute
+        </button>
+        <button class="cmd-btn" data-cmd="check" id="btnCheck">
+          <span class="btn-icon">🔍</span> Check
+        </button>
+        <button class="cmd-btn" data-cmd="health" id="btnHealth">
+          <span class="btn-icon">💊</span> Health
+        </button>
+        <button class="cmd-btn" data-cmd="sync" id="btnSync">
+          <span class="btn-icon">🔄</span> Sync
+        </button>
+        <button class="cmd-btn" data-cmd="status" id="btnStatus">
+          <span class="btn-icon">📊</span> Status
+        </button>
+        <button class="cmd-btn" data-cmd="snapshot" id="btnSnapshot">
+          <span class="btn-icon">📸</span> Snapshot
+        </button>
+      </div>
+      <div class="footer-status">
+        <span id="footerStatusText">Agent idle • Ready</span>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // ─── State ──────────────────────────────────────────────────────
+    let isProcessRunning = false;
+    let processLineCount = 0;
+    let neuralEntryCount = 0;
+    let activeTab = 'neural';
+
+    // ─── DOM References ─────────────────────────────────────────────
+    const $ = (id) => document.getElementById(id);
+    const phaseName     = $('phaseName');
+    const progressFill  = $('progressFill');
+    const progressPct   = $('progressPct');
+    const modeBadge     = $('modeBadge');
+    const taskList      = $('taskList');
+    const connectionDot = $('connectionDot');
+    const connectionLabel = $('connectionLabel');
+    const portLabel     = $('portLabel');
+    const viewNeural    = $('viewNeural');
+    const viewProcess   = $('viewProcess');
+    const neuralCount   = $('neuralCount');
+    const processCount  = $('processCount');
+    const footerStatus  = $('footerStatusText');
+
+    // Show port from URL
+    portLabel.textContent = ':' + location.port;
+
+    // ─── Tab Switching ──────────────────────────────────────────────
+    document.querySelectorAll('.console-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.console-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.console-view').forEach(v => v.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.tab;
+        activeTab = target;
+        const view = target === 'neural' ? viewNeural : viewProcess;
+        view.classList.add('active');
+        view.scrollTop = view.scrollHeight;
+      });
+    });
+
+    // ─── Render State ───────────────────────────────────────────────
+    function renderState(state) {
+      phaseName.textContent = state.phase || 'N/A';
+      progressFill.style.width = state.progress + '%';
+      progressPct.textContent = state.progress + '%';
+
+      if (state.mode && state.mode !== 'N/A') {
+        modeBadge.style.display = 'inline-flex';
+        modeBadge.textContent = '◆ ' + state.mode;
+      } else {
+        modeBadge.style.display = 'none';
+      }
+
+      renderTasks(state.tasks || []);
+    }
+
+    function renderTasks(tasks) {
+      if (tasks.length === 0) {
+        taskList.innerHTML = '<div class="task-empty">No tasks defined in STATE.md</div>';
+        return;
+      }
+
+      taskList.innerHTML = '';
+      tasks.forEach(task => {
+        const item = document.createElement('div');
+        item.className = 'task-item ' + task.status;
+        item.setAttribute('data-line', task.lineIndex);
+
+        const checkbox = document.createElement('div');
+        checkbox.className = 'task-checkbox';
+
+        const text = document.createElement('div');
+        text.className = 'task-text';
+        text.textContent = task.text;
+
+        item.appendChild(checkbox);
+        item.appendChild(text);
+
+        item.addEventListener('click', () => toggleTask(task.lineIndex));
+        taskList.appendChild(item);
+      });
+    }
+
+    // ─── Render Neural Logs ─────────────────────────────────────────
+    function renderLogs(entries) {
+      if (!entries || entries.length === 0) return;
+
+      neuralEntryCount = entries.length;
+      neuralCount.textContent = entries.length;
+
+      viewNeural.innerHTML = '';
+      entries.forEach(entry => {
+        const row = document.createElement('div');
+        row.className = 'log-entry fade-in';
+
+        // Icon
+        const icon = document.createElement('span');
+        icon.className = 'log-icon';
+        const src = (entry.source || '').toLowerCase();
+        if (src.includes('user')) icon.textContent = '👤';
+        else if (src === 'model') icon.textContent = '🤖';
+        else if (src === 'system') icon.textContent = '⚙️';
+        else icon.textContent = '◇';
+
+        // Step index
+        const step = document.createElement('span');
+        step.className = 'log-step';
+        step.textContent = '#' + (entry.step_index ?? '');
+
+        // Type badge
+        const type = document.createElement('span');
+        type.className = 'log-type';
+        const typeStr = (entry.type || 'unknown').toLowerCase();
+        if (src === 'model') type.classList.add('model');
+        else if (src.includes('user')) type.classList.add('user');
+        else if (src === 'system') type.classList.add('system');
+        else type.classList.add('tool');
+        type.textContent = abbreviateType(entry.type || '');
+
+        // Content
+        const content = document.createElement('span');
+        content.className = 'log-content';
+        const rawContent = entry.content || '';
+        content.textContent = rawContent.substring(0, 200).replace(/\n/g, ' ');
+
+        row.appendChild(icon);
+        row.appendChild(step);
+        row.appendChild(type);
+        row.appendChild(content);
+        viewNeural.appendChild(row);
+      });
+
+      viewNeural.scrollTop = viewNeural.scrollHeight;
+    }
+
+    function abbreviateType(type) {
+      const map = {
+        'USER_INPUT': 'INPUT',
+        'PLANNER_RESPONSE': 'PLAN',
+        'VIEW_FILE': 'VIEW',
+        'GREP_SEARCH': 'GREP',
+        'RUN_COMMAND': 'CMD',
+        'WRITE_TO_FILE': 'WRITE',
+        'REPLACE_FILE_CONTENT': 'EDIT',
+        'MULTI_REPLACE_FILE_CONTENT': 'EDIT',
+        'SEARCH_WEB': 'WEB',
+        'LIST_DIR': 'DIR',
+        'INVOKE_SUBAGENT': 'AGENT',
+      };
+      return map[type] || type.substring(0, 6);
+    }
+
+    // ─── Append Process Line ────────────────────────────────────────
+    function appendProcessLine(stream, line) {
+      // Clear empty message on first line
+      if (processLineCount === 0) {
+        viewProcess.innerHTML = '';
+      }
+
+      processLineCount++;
+      processCount.textContent = processLineCount;
+
+      const el = document.createElement('div');
+      el.className = 'process-line ' + stream + ' fade-in';
+      el.textContent = line;
+      viewProcess.appendChild(el);
+
+      // Auto-switch to process tab when a command starts
+      if (stream === 'system' && line.startsWith('▶')) {
+        document.querySelectorAll('.console-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.console-view').forEach(v => v.classList.remove('active'));
+        $('tabProcess').classList.add('active');
+        viewProcess.classList.add('active');
+        activeTab = 'process';
+      }
+
+      viewProcess.scrollTop = viewProcess.scrollHeight;
+    }
+
+    // ─── Update Process Status ──────────────────────────────────────
+    function updateStatus(status) {
+      isProcessRunning = status.running;
+      const buttons = document.querySelectorAll('.cmd-btn');
+
+      if (status.running) {
+        buttons.forEach(btn => btn.disabled = true);
+        footerStatus.innerHTML = '<span class="status-running">' +
+          '<span class="running-dots"><span></span><span></span><span></span></span> ' +
+          'Running: ' + (status.command || '...') +
+          '</span>';
+      } else {
+        buttons.forEach(btn => btn.disabled = false);
+        footerStatus.textContent = 'Agent idle • Ready';
+      }
+    }
+
+    // ─── Toggle Task ────────────────────────────────────────────────
+    async function toggleTask(lineIndex) {
+      try {
+        const res = await fetch('/api/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ lineIndex }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          console.error('Toggle failed:', err.error);
+        }
+        // State will update via SSE
+      } catch (e) {
+        console.error('Toggle error:', e);
+      }
+    }
+
+    // ─── Execute Command ────────────────────────────────────────────
+    async function executeCommand(command) {
+      if (isProcessRunning) return;
+      try {
+        const res = await fetch('/api/command', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ command }),
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          appendProcessLine('stderr', 'Error: ' + err.error);
+        }
+      } catch (e) {
+        appendProcessLine('stderr', 'Network error: ' + e.message);
+      }
+    }
+
+    // Bind command buttons
+    document.querySelectorAll('.cmd-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.dataset.cmd;
+        if (cmd) executeCommand(cmd);
+      });
+    });
+
+    // ─── SSE Connection ─────────────────────────────────────────────
+    function connectSSE() {
+      const evtSource = new EventSource('/api/stream');
+
+      evtSource.addEventListener('state', (e) => {
+        try {
+          const state = JSON.parse(e.data);
+          renderState(state);
+        } catch (err) {
+          console.error('SSE state parse error:', err);
+        }
+      });
+
+      evtSource.addEventListener('log', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          renderLogs(data.entries);
+        } catch (err) {
+          console.error('SSE log parse error:', err);
+        }
+      });
+
+      evtSource.addEventListener('process', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          appendProcessLine(data.stream, data.line);
+        } catch (err) {
+          console.error('SSE process parse error:', err);
+        }
+      });
+
+      evtSource.addEventListener('status', (e) => {
+        try {
+          const data = JSON.parse(e.data);
+          updateStatus(data);
+        } catch (err) {
+          console.error('SSE status parse error:', err);
+        }
+      });
+
+      evtSource.onopen = () => {
+        connectionDot.classList.remove('disconnected');
+        connectionLabel.textContent = 'Connected';
+      };
+
+      evtSource.onerror = () => {
+        connectionDot.classList.add('disconnected');
+        connectionLabel.textContent = 'Reconnecting...';
+      };
+    }
+
+    // ─── Initial Load ───────────────────────────────────────────────
+    async function init() {
+      // Fetch initial state
+      try {
+        const res = await fetch('/api/state');
+        const state = await res.json();
+        renderState(state);
+      } catch (e) {
+        console.error('Initial state fetch failed:', e);
+      }
+
+      // Fetch initial logs
+      try {
+        const res = await fetch('/api/logs');
+        const data = await res.json();
+        renderLogs(data.entries);
+      } catch (e) {
+        console.error('Initial logs fetch failed:', e);
+      }
+
+      // Start SSE
+      connectSSE();
+    }
+
+    init();
+  </script>
+</body>
+</html>

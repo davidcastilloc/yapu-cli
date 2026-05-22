@@ -92,12 +92,13 @@ The Antigravity brain is **ephemeral** (per conversation). The `.planning/` dire
 
 ---
 
-## 🛠️ CLI Commands (10)
+## 🛠️ CLI Commands (11)
 
 ```bash
 yapu init              # 🪺 Founds the colony (.planning/ + complete skills)
 yapu status            # 📊 Project radiograph
 yapu dash              # 📟 Real-time TUI dashboard (Zero-dependency)
+yapu board [--port N]  # 🌐 Web Command Center (C2) — interactive browser dashboard
 yapu gc                # 🗑️ Contextual Garbage Collector (condenses history)
 yapu rescue <log>      # 🚑 Auto-Heal: reads a CI/CD error log and prepares a fix
 yapu archive           # 📦 Season finale (freezes tasks into HISTORY.md)
@@ -112,6 +113,7 @@ yapu brain <list|log>  # 🔍 Inspects the Antigravity brain
 - **`yapu init`** — Scaffolds `.planning/` with 11 subdirectories + 5 base files. Copies 41 workflows, 25 references, 3 contexts, and 5 codebase templates to `.agents/skills/`. It also copies `PROJECT.md`, `ROADMAP.md` and `STATE.md` to the project root. Never overwrites existing files.
 - **`yapu status`** — Reads `STATE.md` and reports operational mode, active phase, task list, and spec integrity.
 - **`yapu dash`** — Renders an interactive TUI monitor at 60FPS reading `ROADMAP.md` and AI logs (Zero dependencies).
+- **`yapu board [--port N]`** — Launches a local web Command Center (C2) with real-time SSE streaming, interactive task toggles, neural feed, and whitelisted command execution. Zero dependencies.
 - **`yapu gc`** — Archives old phases from `.planning/phases/` and prepares token compression (Contextual Garbage Collector).
 - **`yapu rescue <log>`** — Instantly creates an Auto-Heal debugging session and instructions for your AI based on an error log.
 - **`yapu archive`** — Freezes completed tasks from `STATE.md` into `HISTORY.md` with a timestamp.

@@ -430,6 +430,57 @@ yapu brain log [--path <path>] [-n N]
 
 ---
 
+## 10. `yapu board`
+
+Launches the **Yapu Command Center (C2)** — a zero-dependency, local web-based dashboard for real-time project monitoring and interactive control.
+
+### Usage
+
+```bash
+yapu board [--port N]
+```
+
+### Parameters
+
+| Parameter | Required | Description |
+|---|---|---|
+| `--port` | No | HTTP port for the local server (default: `4040`) |
+
+### Behavior
+
+- Starts a local HTTP server on `node:http` with **zero external dependencies**.
+- Serves a premium dark-themed web UI at `http://localhost:4040`.
+- Automatically opens your default browser.
+- **Real-time streaming** via Server-Sent Events (SSE):
+  - Watches `STATE.md` with `fs.watch` and pushes updates instantly when the file changes.
+  - Streams brain transcript entries (neural feed) from the active Antigravity session.
+  - Pipes `stdout`/`stderr` from spawned commands to the browser console.
+- **Interactive task management**: Click task checkboxes in the UI to toggle their status in `STATE.md` (atomic writes).
+- **Command execution**: Run whitelisted yapu commands directly from the web interface.
+- **Security**: Only the following commands are executable from the UI (whitelist):
+  `plan`, `execute`, `status`, `check`, `health`, `sync`, `handoff`, `snapshot`, `gc`, `rescue`.
+  Any other command returns `403 Forbidden`.
+
+### UI Layout
+
+| Panel | Content |
+|---|---|
+| **Left** | Active phase, progress bar, interactive task checklist |
+| **Right** | Tabbed console: Neural Feed (brain logs) + Process Output (command results) |
+| **Bottom** | Command bar with action buttons (Plan, Execute, Check, Health, Sync, etc.) |
+
+### Example Output (Terminal)
+
+```
+🪺 Starting Yapu Command Center...
+🌐 C2 listening on http://localhost:4040
+  → http://localhost:4040
+
+  Press Ctrl+C to stop.
+```
+
+---
+
 ## General Help
 
 Executing `yapu` without arguments displays the help screen listing all available commands:
@@ -451,4 +502,5 @@ Usage:
   yapu sync              -> Syncs Antigravity brain → .planning/ (auto-detected).
   yapu handoff           -> Generates handoff for the next session (auto-detected).
   yapu brain <list|log>  -> Inspects Antigravity brain (auto-detected).
+  yapu board [--port N]  -> Web Command Center (C2) — interactive dashboard.
 ```

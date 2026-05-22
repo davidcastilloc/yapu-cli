@@ -3,6 +3,9 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { spawn, execSync } from 'node:child_process';
+import readline from 'node:readline';
+import zlib from 'node:zlib';
 import { t, getLanguage } from '../lib/i18n.js';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -29,6 +32,356 @@ if (!fs.existsSync(templatesDir)) {
     templatesDir = path.join(__dirname, '..', 'templates', 'es');
 }
 const skillsDir = path.join(targetDir, '.agents', 'skills');
+
+function createSnapshot(targetDir) {
+    try {
+        const planningDir = path.join(targetDir, '.planning');
+        if (!fs.existsSync(planningDir)) {
+            throw new Error('.planning directory not found');
+        }
+
+        const snapshotsDir = path.join(planningDir, '.snapshots');
+        if (!fs.existsSync(snapshotsDir)) {
+            fs.mkdirSync(snapshotsDir, { recursive: true });
+        }
+
+        let gitCommitHash = 'no-git-commit';
+        try {
+            gitCommitHash = execSync('git rev-parse HEAD', { cwd: targetDir, stdio: 'pipe' }).toString().trim();
+        } catch {
+            // Not a git repository or no commit yet
+        }
+
+        const filesObj = {};
+        const traverse = (dir) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                const relPath = path.relative(planningDir, fullPath);
+
+                if (entry.isDirectory()) {
+                    if (entry.name === '.snapshots') {
+                        continue;
+                    }
+                    traverse(fullPath);
+                } else if (entry.isFile()) {
+                    const content = fs.readFileSync(fullPath, 'utf8');
+                    filesObj[relPath] = content;
+                }
+            }
+        };
+
+        traverse(planningDir);
+
+        const timestamp = Date.now();
+        const snapshotObj = {
+            version: 1,
+            timestamp,
+            gitCommit: gitCommitHash,
+            files: filesObj
+        };
+
+        const shortCommit = gitCommitHash !== 'no-git-commit' ? gitCommitHash.substring(0, 7) : 'no-commit';
+        const snapshotFilename = `snapshot-${timestamp}-${shortCommit}.json.gz`;
+        const snapshotPath = path.join(snapshotsDir, snapshotFilename);
+
+        const compressed = zlib.gzipSync(JSON.stringify(snapshotObj));
+        fs.writeFileSync(snapshotPath, compressed);
+
+        console.log(t('snapshot_created', { name: snapshotFilename, commit: shortCommit }));
+        return snapshotFilename;
+    } catch (err) {
+        console.error(t('snapshot_error', { error: err.message }));
+        throw err;
+    }
+}
+
+function restoreSnapshot(targetDir, snapshotPath) {
+    try {
+        const planningDir = path.join(targetDir, '.planning');
+        if (!fs.existsSync(planningDir)) {
+            throw new Error('.planning directory not found');
+        }
+
+        const compressed = fs.readFileSync(snapshotPath);
+        const decompressed = zlib.gunzipSync(compressed).toString('utf8');
+        const snapshotObj = JSON.parse(decompressed);
+
+        console.log(t('rewind_restoring_files'));
+
+        const clearDir = (dir) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    if (entry.name === '.snapshots') {
+                        continue;
+                    }
+                    clearDir(fullPath);
+                    try {
+                        if (fs.readdirSync(fullPath).length === 0) {
+                            fs.rmdirSync(fullPath);
+                        }
+                    } catch { /* skip */ }
+                } else if (entry.isFile()) {
+                    fs.unlinkSync(fullPath);
+                }
+            }
+        };
+        clearDir(planningDir);
+
+        for (const [relPath, content] of Object.entries(snapshotObj.files)) {
+            const fullPath = path.join(planningDir, relPath);
+            const parentDir = path.dirname(fullPath);
+            if (!fs.existsSync(parentDir)) {
+                fs.mkdirSync(parentDir, { recursive: true });
+            }
+            fs.writeFileSync(fullPath, content, 'utf8');
+        }
+
+        const gitCommit = snapshotObj.gitCommit;
+        if (gitCommit && gitCommit !== 'no-git-commit') {
+            console.log(t('rewind_restoring_git', { commit: gitCommit.substring(0, 7) }));
+            execSync(`git reset --hard ${gitCommit}`, { cwd: targetDir, stdio: 'inherit' });
+        }
+
+        console.log(t('rewind_success', { commit: (gitCommit || 'unknown').substring(0, 7) }));
+    } catch (err) {
+        console.error(t('rewind_error', { error: err.message }));
+        throw err;
+    }
+}
+
+function saveBranchContext(targetDir, branchName) {
+    try {
+        const planningDir = path.join(targetDir, '.planning');
+        if (!fs.existsSync(planningDir)) {
+            return;
+        }
+
+        const branchesDir = path.join(planningDir, '.branches');
+        if (!fs.existsSync(branchesDir)) {
+            fs.mkdirSync(branchesDir, { recursive: true });
+        }
+
+        const filesObj = {};
+        const traverse = (dir) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                const relPath = path.relative(planningDir, fullPath);
+
+                if (entry.isDirectory()) {
+                    if (entry.name === '.snapshots' || entry.name === '.branches') {
+                        continue;
+                    }
+                    traverse(fullPath);
+                } else if (entry.isFile()) {
+                    const content = fs.readFileSync(fullPath, 'utf8');
+                    filesObj[relPath] = content;
+                }
+            }
+        };
+
+        traverse(planningDir);
+
+        const stateObj = {
+            version: 1,
+            timestamp: Date.now(),
+            files: filesObj
+        };
+
+        const statePath = path.join(branchesDir, `branch-${branchName}.json.gz`);
+        const compressed = zlib.gzipSync(JSON.stringify(stateObj));
+        fs.writeFileSync(statePath, compressed);
+    } catch (err) {
+        console.error(`Error saving branch context: ${err.message}`);
+    }
+}
+
+function restoreBranchContext(targetDir, branchName) {
+    try {
+        const planningDir = path.join(targetDir, '.planning');
+        if (!fs.existsSync(planningDir)) {
+            return false;
+        }
+
+        const branchesDir = path.join(planningDir, '.branches');
+        const statePath = path.join(branchesDir, `branch-${branchName}.json.gz`);
+        if (!fs.existsSync(statePath)) {
+            return false;
+        }
+
+        const compressed = fs.readFileSync(statePath);
+        const decompressed = zlib.gunzipSync(compressed).toString('utf8');
+        const stateObj = JSON.parse(decompressed);
+
+        const clearDir = (dir) => {
+            const entries = fs.readdirSync(dir, { withFileTypes: true });
+            for (const entry of entries) {
+                const fullPath = path.join(dir, entry.name);
+                if (entry.isDirectory()) {
+                    if (entry.name === '.snapshots' || entry.name === '.branches') {
+                        continue;
+                    }
+                    clearDir(fullPath);
+                    try {
+                        if (fs.readdirSync(fullPath).length === 0) {
+                            fs.rmdirSync(fullPath);
+                        }
+                    } catch { /* skip */ }
+                } else if (entry.isFile()) {
+                    fs.unlinkSync(fullPath);
+                }
+            }
+        };
+        clearDir(planningDir);
+
+        for (const [relPath, content] of Object.entries(stateObj.files)) {
+            const fullPath = path.join(planningDir, relPath);
+            const parentDir = path.dirname(fullPath);
+            if (!fs.existsSync(parentDir)) {
+                fs.mkdirSync(parentDir, { recursive: true });
+            }
+            fs.writeFileSync(fullPath, content, 'utf8');
+        }
+
+        return true;
+    } catch (err) {
+        console.error(`Error restoring branch context: ${err.message}`);
+        return false;
+    }
+}
+
+function normalizeTaskText(text) {
+    return text
+        .replace(/^\s*(Task\s*\d+|T\d+|Task\s+[A-Za-z0-9_]+|T\s+[A-Za-z0-9_]+)[:\s\*-]*/i, '')
+        .replace(/[\*\s`'"]/g, '')
+        .toLowerCase()
+        .trim();
+}
+
+function getBranchFileContent(targetDir, branchName, relPath) {
+    try {
+        const content = execSync(`git show ${branchName}:${relPath}`, { cwd: targetDir, stdio: 'pipe' }).toString('utf8');
+        return content;
+    } catch {
+        const statePath = path.join(targetDir, '.planning', '.branches', `branch-${branchName}.json.gz`);
+        if (fs.existsSync(statePath)) {
+            try {
+                const compressed = fs.readFileSync(statePath);
+                const decompressed = zlib.gunzipSync(compressed).toString('utf8');
+                const stateObj = JSON.parse(decompressed);
+                if (stateObj && stateObj.files) {
+                    if (stateObj.files[relPath]) {
+                        return stateObj.files[relPath];
+                    }
+                    if (relPath.startsWith('.planning/')) {
+                        const planningRel = relPath.substring(10);
+                        if (stateObj.files[planningRel]) {
+                            return stateObj.files[planningRel];
+                        }
+                    } else {
+                        if (stateObj.files[`.planning/${relPath}`]) {
+                            return stateObj.files[`.planning/${relPath}`];
+                        }
+                    }
+                }
+            } catch {}
+        }
+    }
+    return null;
+}
+
+function harmonizeStateFile(targetDir, targetBranch, activeFileName) {
+    let updatedTasksCount = 0;
+    const sourceStateContent = getBranchFileContent(targetDir, targetBranch, activeFileName) || getBranchFileContent(targetDir, targetBranch, `.planning/${activeFileName}`);
+    if (!sourceStateContent) return 0;
+
+    const pathsToHarmonize = [];
+    if (fs.existsSync(path.join(targetDir, '.planning', activeFileName))) {
+        pathsToHarmonize.push(path.join(targetDir, '.planning', activeFileName));
+    }
+    if (fs.existsSync(path.join(targetDir, activeFileName))) {
+        pathsToHarmonize.push(path.join(targetDir, activeFileName));
+    }
+
+    const uniquePaths = Array.from(new Set(pathsToHarmonize));
+
+    for (const activeStatePath of uniquePaths) {
+        const activeStateContent = fs.readFileSync(activeStatePath, 'utf8');
+        
+        const completedTasks = new Set();
+        const sourceLines = sourceStateContent.split('\n');
+        const completedRegex = /^\s*-\s*\[[xX]\]\s*(.*)$/;
+        for (const line of sourceLines) {
+            const match = line.match(completedRegex);
+            if (match) {
+                completedTasks.add(normalizeTaskText(match[1]));
+            }
+        }
+
+        const activeLines = activeStateContent.split('\n');
+        const pendingRegex = /^\s*-\s*\[([\s\/])\]\s*(.*)$/;
+        let fileUpdatedTasksCount = 0;
+        const updatedLines = activeLines.map(line => {
+            const match = line.match(pendingRegex);
+            if (match) {
+                const text = match[2];
+                const norm = normalizeTaskText(text);
+                if (completedTasks.has(norm)) {
+                    fileUpdatedTasksCount++;
+                    return line.replace(/-\s*\[[\s\/]\]/, '- [x]');
+                }
+            }
+            return line;
+        });
+
+        if (fileUpdatedTasksCount > 0) {
+            fs.writeFileSync(activeStatePath, updatedLines.join('\n'), 'utf8');
+            updatedTasksCount = Math.max(updatedTasksCount, fileUpdatedTasksCount);
+        }
+    }
+    return updatedTasksCount;
+}
+
+function harvestLearnings(targetDir, targetBranch) {
+    const learningsFileName = 'yapu-learnings.md';
+    const sourceLearningsContent = getBranchFileContent(targetDir, targetBranch, learningsFileName) || getBranchFileContent(targetDir, targetBranch, `.planning/${learningsFileName}`);
+    if (!sourceLearningsContent) {
+        return false;
+    }
+
+    const targetPlanningPath = path.join(targetDir, '.planning', learningsFileName);
+    const targetRootPath = path.join(targetDir, learningsFileName);
+    
+    let activePath = targetRootPath;
+    if (fs.existsSync(targetPlanningPath)) {
+        activePath = targetPlanningPath;
+    } else if (fs.existsSync(targetRootPath)) {
+        activePath = targetRootPath;
+    } else if (fs.existsSync(path.join(targetDir, '.planning'))) {
+        activePath = targetPlanningPath;
+    }
+
+    let currentContent = '';
+    if (fs.existsSync(activePath)) {
+        currentContent = fs.readFileSync(activePath, 'utf8');
+    }
+
+    const headerTitle = activeLang === 'es' 
+        ? `## 🧪 Aprendizajes del Experimento: ${targetBranch}`
+        : `## 🧪 Learnings from Experiment: ${targetBranch}`;
+
+    const formattedLearnings = sourceLearningsContent
+        .replace(/^#\s+.*$/m, '')
+        .trim();
+
+    const newSection = `\n${headerTitle}\n\n${formattedLearnings}\n`;
+
+    fs.writeFileSync(activePath, currentContent + newSection, 'utf8');
+    return true;
+}
 
 if (command === 'init') {
     console.log(t('init_start'));
@@ -253,6 +606,31 @@ if (command === 'init') {
         });
     }
     console.log(t('init_codebase_count', { count: cbCount }));
+
+    // Automatically add .planning/.branches/ and .planning/.snapshots/ to .gitignore to avoid committing them
+    const gitignorePath = path.join(targetDir, '.gitignore');
+    const ignoreEntries = [
+        '.planning/.branches/',
+        '.planning/.snapshots/'
+    ];
+    let gitignoreContent = '';
+    if (fs.existsSync(gitignorePath)) {
+        gitignoreContent = fs.readFileSync(gitignorePath, 'utf8');
+    }
+    let updatedGitignore = false;
+    for (const entry of ignoreEntries) {
+        if (!gitignoreContent.includes(entry)) {
+            if (gitignoreContent && !gitignoreContent.endsWith('\n')) {
+                gitignoreContent += '\n';
+            }
+            gitignoreContent += entry + '\n';
+            updatedGitignore = true;
+        }
+    }
+    if (updatedGitignore) {
+        fs.writeFileSync(gitignorePath, gitignoreContent, 'utf8');
+        console.log(activeLang === 'es' ? '📝 Archivo .gitignore actualizado para excluir ramas y snapshots de contexto.' : '📝 .gitignore file updated to exclude context branches and snapshots.');
+    }
 
     console.log(t('init_done'));
 } else if (command === 'archive') {
@@ -795,6 +1173,18 @@ if (command === 'init') {
             console.error('Error loading dashboard:', err);
             process.exit(1);
         });
+} else if (command === 'board') {
+    const portIdx = cleanArgs.indexOf('--port');
+    const port = portIdx !== -1 ? parseInt(cleanArgs[portIdx + 1], 10) : 4040;
+    console.log(t('board_start'));
+    import('../lib/board.js')
+        .then(({ startBoard }) => {
+            startBoard(targetDir, activeLang, { port });
+        })
+        .catch(err => {
+            console.error('Error loading board:', err);
+            process.exit(1);
+        });
 } else if (command === 'gc') {
     console.log(t('gc_start'));
 
@@ -917,6 +1307,876 @@ ${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
 
     fs.writeFileSync(rescueTaskPath, rescuePrompt, 'utf8');
     console.log(t('rescue_session_created', { path: rescueTaskPath }));
+} else if (command === 'swarm') {
+    console.log(t('swarm_start'));
+
+    let finalStatePath = '';
+    const candidates = [
+        path.join(targetDir, '.planning', 'STATE.md'),
+        path.join(targetDir, 'STATE.md'),
+        path.join(targetDir, '.planning', 'PLAN.md'),
+        path.join(targetDir, 'PLAN.md'),
+        path.join(targetDir, '.planning', 'current-plan.md')
+    ];
+    for (const cand of candidates) {
+        if (fs.existsSync(cand)) {
+            finalStatePath = cand;
+            break;
+        }
+    }
+
+    if (!finalStatePath) {
+        console.error(t('status_no_state'));
+        process.exit(1);
+    }
+
+    try {
+        const stateContent = fs.readFileSync(finalStatePath, 'utf8');
+        const tasks = [];
+        const lines = stateContent.split('\n');
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+
+            // Format 1: MECE Advanced format - e.g. "- [ ] **T1: Implement login**"
+            const meceMatch = line.match(/- \[( |\/|x)\] \*\*(T\d+):\s*(.*?)\*\*/);
+            if (meceMatch) {
+                const statusChar = meceMatch[1];
+                const id = meceMatch[2];
+                const name = meceMatch[3].trim();
+                const status = (statusChar === 'x') ? 'completed' : 'pending';
+
+                let files = [];
+                let verification = '';
+                let dependency = [];
+
+                let j = i + 1;
+                while (j < lines.length && 
+                       (lines[j].trim().startsWith('-') || lines[j].trim().startsWith('*') || lines[j].trim() === '') && 
+                       !lines[j].match(/- \[( |\/|x)\]/)) {
+                    const subLine = lines[j].trim();
+                    const filesMatch = subLine.match(/(?:Files|Archivos):\s*(.*)/i);
+                    if (filesMatch) {
+                        files = filesMatch[1].split(',').map(f => f.trim().replace(/[\[\]`]/g, '')).filter(Boolean);
+                    }
+                    const verifyMatch = subLine.match(/(?:Verification|Verificación):\s*(.*)/i);
+                    if (verifyMatch) {
+                        verification = verifyMatch[1].trim();
+                    }
+                    const depMatch = subLine.match(/(?:Dependency|Dependencia):\s*(.*)/i);
+                    if (depMatch) {
+                        const depVal = depMatch[1].trim().replace(/[\[\]`]/g, '');
+                        if (depVal.toLowerCase() !== 'none') {
+                            dependency = depVal.split(',').map(d => d.trim()).filter(Boolean);
+                        }
+                    }
+                    j++;
+                }
+
+                tasks.push({
+                    id,
+                    name,
+                    status,
+                    files,
+                    verification,
+                    dependency,
+                    startIndex: i,
+                    endIndex: j - 1
+                });
+            } else {
+                // Format 2: Fallback simple task - e.g. "- [ ] Task 1: Refactor bin/cli.js" or "- [/] Task 5: ..."
+                const fallbackMatch = line.match(/- \[( |\/|x)\] (Task \d+|Tarea \d+):\s*(.*)/i);
+                if (fallbackMatch) {
+                    const statusChar = fallbackMatch[1];
+                    const idVal = fallbackMatch[2].trim();
+                    const idMatch = idVal.match(/\d+/);
+                    const id = idMatch ? 'T' + idMatch[0] : idVal;
+                    const name = fallbackMatch[3].trim();
+                    const status = (statusChar === 'x') ? 'completed' : 'pending';
+
+                    let files = [];
+                    const fileMatches = name.match(/`([^`]+)`/g);
+                    if (fileMatches) {
+                        files = fileMatches.map(m => m.replace(/`/g, ''));
+                    }
+
+                    tasks.push({
+                        id,
+                        name,
+                        status,
+                        files,
+                        verification: '',
+                        dependency: [],
+                        startIndex: i,
+                        endIndex: i
+                    });
+                }
+            }
+        }
+
+        const pendingTasksCheck = tasks.filter(t => t.status === 'pending');
+        if (pendingTasksCheck.length === 0) {
+            console.log(t('swarm_no_tasks'));
+            process.exit(0);
+        }
+
+        const configPath = path.join(targetDir, '.planning', 'config.json');
+        let maxConcurrent = 3;
+        if (fs.existsSync(configPath)) {
+            try {
+                const configObj = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                if (configObj.parallelization && configObj.parallelization.max_concurrent_agents) {
+                    maxConcurrent = configObj.parallelization.max_concurrent_agents;
+                }
+            } catch { /* skip */ }
+        }
+
+        try {
+            execSync('which antigravity', { stdio: 'ignore' });
+        } catch {
+            console.error('❌ Error: the "antigravity" executable was not found in the system PATH.');
+            process.exit(1);
+        }
+
+        const running = new Map();
+        const failedTasks = new Set();
+        const completedTasks = new Set();
+
+        tasks.forEach(t => {
+            if (t.status === 'completed') {
+                completedTasks.add(t.id);
+            }
+        });
+
+        const colors = [
+            '\x1b[36m', // Cyan
+            '\x1b[35m', // Magenta
+            '\x1b[33m', // Yellow
+            '\x1b[32m', // Green
+            '\x1b[34m'  // Blue
+        ];
+        const resetColor = '\x1b[0m';
+
+        let colorCounter = 0;
+        const taskColors = {};
+        tasks.forEach(t => {
+            taskColors[t.id] = colors[colorCounter % colors.length];
+            colorCounter++;
+        });
+
+        const startSubagent = (task) => {
+            console.log(`${taskColors[task.id]}[${task.id}] 🚀 ${t('swarm_running_task', { id: task.id, name: task.name })}${resetColor}`);
+
+            const promptText = `You are a parallel subagent in a Yapu Swarm.
+Execute the following task:
+Task ID: ${task.id}
+Task Name: ${task.name}
+Files to modify: ${task.files.join(', ')}
+Verification: ${task.verification || 'Run relevant tests or check changes'}
+
+Instructions:
+1. Implement the task.
+2. Verify the implementation.
+3. CRITICAL: Do NOT perform any git commits, and do NOT modify STATE.md or any other plan/roadmap files. The parent orchestrator will handle git commits and state updates.
+4. Once successfully completed and verified, exit with code 0.
+`;
+
+            const args = ['chat', '-m', 'agent'];
+            task.files.forEach(f => {
+                const fullPath = path.resolve(targetDir, f);
+                if (fs.existsSync(fullPath)) {
+                    args.push('-a', f);
+                }
+            });
+
+            const workflowPath = path.join(targetDir, '.agents', 'skills', 'yapu-execute.md');
+            if (fs.existsSync(workflowPath)) {
+                args.push('-a', '.agents/skills/yapu-execute.md');
+            }
+
+            args.push(promptText);
+
+            const child = spawn('antigravity', args, {
+                cwd: targetDir,
+                stdio: ['pipe', 'pipe', 'pipe']
+            });
+
+            running.set(task.id, {
+                process: child,
+                files: task.files,
+                task
+            });
+
+            const rlStdout = readline.createInterface({ input: child.stdout });
+            rlStdout.on('line', (line) => {
+                console.log(`${taskColors[task.id]}[${task.id}]${resetColor} ${line}`);
+            });
+
+            const rlStderr = readline.createInterface({ input: child.stderr });
+            rlStderr.on('line', (line) => {
+                console.error(`${taskColors[task.id]}[${task.id}] [ERR]${resetColor} \x1b[31m${line}\x1b[0m`);
+            });
+
+            child.on('close', (code) => {
+                running.delete(task.id);
+
+                if (code === 0) {
+                    console.log(`${taskColors[task.id]}[${task.id}] ${t('swarm_completed_task', { id: task.id })}${resetColor}`);
+                    task.status = 'completed';
+                    completedTasks.add(task.id);
+
+                    try {
+                        const currentContent = fs.readFileSync(finalStatePath, 'utf8');
+                        const linesArray = currentContent.split('\n');
+                        const targetLine = linesArray[task.startIndex];
+                        linesArray[task.startIndex] = targetLine.replace(/- \[( |\/)\]/, '- [x]');
+                        fs.writeFileSync(finalStatePath, linesArray.join('\n'), 'utf8');
+                    } catch (err) {
+                        console.error(`❌ [${task.id}] Error writing to STATE.md: ${err.message}`);
+                    }
+
+                    if (task.files.length > 0) {
+                        try {
+                            task.files.forEach(f => {
+                                if (fs.existsSync(path.join(targetDir, f))) {
+                                    execSync(`git add "${f}"`, { cwd: targetDir });
+                                }
+                            });
+                            execSync(`git commit -m "yapu: ${task.id} - ${task.name}"`, { cwd: targetDir, stdio: 'ignore' });
+                            console.log(`${taskColors[task.id]}[${task.id}] ${t('swarm_git_commit', { id: task.id, files: task.files.join(', ') })}${resetColor}`);
+                            
+                            // Auto-trigger snapshot on swarm task success
+                            try {
+                                createSnapshot(targetDir);
+                            } catch {
+                                // Suppress snapshot errors during swarm
+                            }
+                        } catch (err) {
+                            // Suppress git errors if no changes made
+                        }
+                    }
+                } else {
+                    console.error(`\x1b[31m[${task.id}] ${t('swarm_failed_task', { id: task.id, code })}\x1b[0m`);
+                    failedTasks.add(task.id);
+                }
+
+                tick();
+            });
+        };
+
+        const tick = () => {
+            const pendingTasks = tasks.filter(t => t.status === 'pending' && !running.has(t.id) && !failedTasks.has(t.id));
+
+            if (pendingTasks.length === 0 && running.size === 0) {
+                console.log(t('swarm_summary_title'));
+                if (failedTasks.size === 0) {
+                    console.log(`\x1b[32m${t('swarm_summary_success')}\x1b[0m`);
+                } else {
+                    console.warn(`\x1b[33m${t('swarm_summary_partial')}\x1b[0m`);
+                    console.warn(`❌ Failed tasks: ${Array.from(failedTasks).join(', ')}`);
+                }
+                process.exit(failedTasks.size === 0 ? 0 : 1);
+            }
+
+            const runnableTasks = pendingTasks.filter(task => {
+                const hasFailedDep = task.dependency.some(depId => failedTasks.has(depId));
+                if (hasFailedDep) {
+                    failedTasks.add(task.id);
+                    return false;
+                }
+                return task.dependency.every(depId => completedTasks.has(depId));
+            });
+
+            for (const task of runnableTasks) {
+                if (running.size >= maxConcurrent) {
+                    break;
+                }
+
+                let hasFileOverlap = false;
+                for (const runningTask of running.values()) {
+                    const overlap = task.files.some(f => runningTask.files.includes(f));
+                    if (overlap) {
+                        hasFileOverlap = true;
+                        break;
+                    }
+                }
+
+                if (hasFileOverlap) {
+                    continue;
+                }
+
+                startSubagent(task);
+            }
+        };
+
+        // Start scheduling
+        tick();
+
+    } catch (err) {
+        console.error(`❌ Error in Yapu Swarm: ${err.message}`);
+        process.exit(1);
+    }
+} else if (command === 'snapshot') {
+    try {
+        createSnapshot(targetDir);
+    } catch (err) {
+        process.exit(1);
+    }
+} else if (command === 'rewind') {
+    console.log(t('rewind_start'));
+    const snapshotsDir = path.join(targetDir, '.planning', '.snapshots');
+    if (!fs.existsSync(snapshotsDir)) {
+        console.error(t('rewind_no_snapshots'));
+        process.exit(1);
+    }
+    const snapshotFiles = fs.readdirSync(snapshotsDir)
+        .filter(f => f.startsWith('snapshot-') && f.endsWith('.json.gz'));
+
+    if (snapshotFiles.length === 0) {
+        console.error(t('rewind_no_snapshots'));
+        process.exit(1);
+    }
+
+    // Sort descending by timestamp
+    snapshotFiles.sort((a, b) => {
+        const timeA = parseInt(a.split('-')[1]) || 0;
+        const timeB = parseInt(b.split('-')[1]) || 0;
+        return timeB - timeA;
+    });
+
+    const listIdx = cleanArgs.indexOf('--list');
+    const selectIdx = cleanArgs.indexOf('--select');
+
+    if (listIdx !== -1) {
+        console.log(activeLang === 'es' ? '=== Snapshots Disponibles ===' : '=== Available Snapshots ===');
+        snapshotFiles.forEach((file, index) => {
+            const parts = file.split('-');
+            const timestamp = parseInt(parts[1]);
+            const commit = parts[2] ? parts[2].replace('.json.gz', '') : 'no-commit';
+            const dateStr = new Date(timestamp).toLocaleString();
+            console.log(`[${index}] ${file} (${dateStr}) - Git: ${commit}`);
+        });
+        process.exit(0);
+    }
+
+    let selectedFile = null;
+    if (selectIdx !== -1 && cleanArgs[selectIdx + 1]) {
+        const selection = cleanArgs[selectIdx + 1];
+        const idx = parseInt(selection, 10);
+        if (!isNaN(idx) && idx >= 0 && idx < snapshotFiles.length) {
+            selectedFile = snapshotFiles[idx];
+        } else if (snapshotFiles.includes(selection)) {
+            selectedFile = selection;
+        } else {
+            console.error(activeLang === 'es' ? `❌ Error: Selección inválida: ${selection}` : `❌ Error: Invalid selection: ${selection}`);
+            process.exit(1);
+        }
+    } else {
+        selectedFile = snapshotFiles[0];
+    }
+
+    const proceedWithRewind = (selected) => {
+        const parts = selected.split('-');
+        const commit = parts[2] ? parts[2].replace('.json.gz', '') : 'no-commit';
+        console.log(t('rewind_selected', { name: selected }));
+
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+
+        rl.question(t('rewind_confirm_prompt', { commit }), (answer) => {
+            rl.close();
+            const conf = answer.trim().toLowerCase();
+            if (conf === 's' || conf === 'y' || conf === 'si' || conf === 'yes') {
+                try {
+                    restoreSnapshot(targetDir, path.join(snapshotsDir, selected));
+                } catch (err) {
+                    process.exit(1);
+                }
+            } else {
+                console.log(t('rewind_cancelled'));
+                process.exit(0);
+            }
+        });
+    };
+
+    if (selectIdx !== -1 && !cleanArgs[selectIdx + 1]) {
+        console.log(activeLang === 'es' ? '=== Selecciona un Snapshot ===' : '=== Select a Snapshot ===');
+        snapshotFiles.forEach((file, index) => {
+            const parts = file.split('-');
+            const timestamp = parseInt(parts[1]);
+            const commit = parts[2] ? parts[2].replace('.json.gz', '') : 'no-commit';
+            const dateStr = new Date(timestamp).toLocaleString();
+            console.log(`[${index}] ${file} (${dateStr}) - Git: ${commit}`);
+        });
+
+        const rl = readline.createInterface({
+            input: process.stdin,
+            output: process.stdout
+        });
+        const selectionPrompt = activeLang === 'es' ? 'Ingresa el número o nombre del snapshot: ' : 'Enter snapshot number or filename: ';
+        rl.question(selectionPrompt, (answer) => {
+            rl.close();
+            const selection = answer.trim();
+            const idx = parseInt(selection, 10);
+            let interactiveSelected = null;
+            if (!isNaN(idx) && idx >= 0 && idx < snapshotFiles.length) {
+                interactiveSelected = snapshotFiles[idx];
+            } else if (snapshotFiles.includes(selection)) {
+                interactiveSelected = selection;
+            } else {
+                console.error(activeLang === 'es' ? `❌ Error: Selección inválida: ${selection}` : `❌ Error: Invalid selection: ${selection}`);
+                process.exit(1);
+            }
+            proceedWithRewind(interactiveSelected);
+        });
+    } else {
+        proceedWithRewind(selectedFile);
+    }
+} else if (command === 'profile') {
+    try {
+        const memoryFiles = [
+            { name: 'PROJECT.md', path: path.join(targetDir, 'PROJECT.md') },
+            { name: 'ROADMAP.md', path: path.join(targetDir, 'ROADMAP.md') },
+            { name: 'STATE.md', path: path.join(targetDir, 'STATE.md') }
+        ];
+
+        const filesToScan = [];
+
+        // Check root files
+        for (const file of memoryFiles) {
+            if (fs.existsSync(file.path) && fs.statSync(file.path).isFile()) {
+                filesToScan.push(file);
+            }
+        }
+
+        // Recursively scan .planning/ excluding .snapshots/
+        const planningDir = path.join(targetDir, '.planning');
+        if (fs.existsSync(planningDir)) {
+            const scanDir = (dir) => {
+                const entries = fs.readdirSync(dir, { withFileTypes: true });
+                for (const entry of entries) {
+                    const fullPath = path.join(dir, entry.name);
+                    if (entry.isDirectory()) {
+                        if (entry.name === '.snapshots') {
+                            continue;
+                        }
+                        scanDir(fullPath);
+                    } else if (entry.isFile()) {
+                        const relPath = path.relative(targetDir, fullPath);
+                        filesToScan.push({
+                            name: relPath,
+                            path: fullPath
+                        });
+                    }
+                }
+            };
+            scanDir(planningDir);
+        }
+
+        console.log(t('profile_title'));
+
+        const fileHeader = t('profile_header_file').padEnd(35);
+        const sizeHeader = t('profile_header_size').padEnd(10);
+        const tokensHeader = t('profile_header_tokens').padEnd(12);
+        const statusHeader = t('profile_header_status').padEnd(12);
+
+        const headerLine = `| ${fileHeader} | ${sizeHeader} | ${tokensHeader} | ${statusHeader} |`;
+        const separator = '-'.repeat(headerLine.length);
+
+        console.log(separator);
+        console.log(headerLine);
+        console.log(separator);
+
+        let totalBytes = 0;
+        let totalTokens = 0;
+        let hasWarning = false;
+        let hasCritical = false;
+
+        const getFileStatus = (tokens) => {
+            if (tokens < 5000) {
+                return { label: 'OK', color: '\x1b[32m' };
+            } else if (tokens <= 10000) {
+                hasWarning = true;
+                return { label: 'WARNING ⚠️', color: '\x1b[33m' };
+            } else {
+                hasCritical = true;
+                return { label: 'CRITICAL 🚨', color: '\x1b[31m' };
+            }
+        };
+
+        for (const file of filesToScan) {
+            const content = fs.readFileSync(file.path, 'utf8');
+            const bytes = content.length;
+            const sizeKB = (bytes / 1024).toFixed(1);
+            const tokens = Math.ceil(bytes / 4.0);
+
+            totalBytes += bytes;
+            totalTokens += tokens;
+
+            const statusObj = getFileStatus(tokens);
+
+            let nameCol = file.name;
+            if (nameCol.length > 35) {
+                nameCol = '...' + nameCol.slice(-32);
+            }
+
+            const nameStr = nameCol.padEnd(35);
+            const sizeStr = `${sizeKB} KB`.padEnd(10);
+            const tokensStr = String(tokens).padEnd(12);
+            const statusStr = statusObj.label.padEnd(12);
+
+            console.log(`| ${nameStr} | ${sizeStr} | ${tokensStr} | ${statusObj.color}${statusStr}\x1b[0m |`);
+        }
+
+        console.log(separator);
+
+        const totalKBStr = (totalBytes / 1024).toFixed(1);
+        const formattedTokens = totalTokens.toLocaleString(activeLang === 'es' ? 'es-ES' : 'en-US');
+
+        console.log(t('profile_total_weight', { size: totalKBStr, tokens: formattedTokens }));
+
+        // Recommendations based on cumulative context size and single files status
+        let recText = t('profile_rec_ok');
+        if (totalTokens > 30000 || hasCritical) {
+            recText = t('profile_rec_critical');
+        } else if (totalTokens > 15000 || hasWarning) {
+            recText = t('profile_rec_warning');
+        }
+
+        console.log(`${t('profile_rec_title')}${recText}`);
+
+    } catch (err) {
+        console.error(`❌ Error scanning context: ${err.message}`);
+        process.exit(1);
+    }
+} else if (command === 'daemon' || command === 'watch') {
+    const brainIdx = cleanArgs.indexOf('--brain-path');
+    let brainPath = brainIdx !== -1 ? cleanArgs[brainIdx + 1] : null;
+
+    const homeDir = os.homedir();
+    const brainBaseDir = path.join(homeDir, '.gemini', 'antigravity-cli', 'brain');
+    const watchDir = brainPath || brainBaseDir;
+
+    if (!fs.existsSync(watchDir)) {
+        fs.mkdirSync(watchDir, { recursive: true });
+    }
+
+    const planningPath = path.join(targetDir, '.planning');
+    if (!fs.existsSync(planningPath)) {
+        console.error(t('sync_no_planning'));
+        process.exit(1);
+    }
+
+    console.log(t('daemon_start'));
+    console.log(t('daemon_watching_path', { path: watchDir }));
+
+    const doSync = async () => {
+        try {
+            const { detectBrainPath, syncBrainToPlanning } = await import('../lib/artifacts.js');
+            const targetBrainPath = brainPath || detectBrainPath();
+            if (!targetBrainPath || !fs.existsSync(targetBrainPath)) {
+                return;
+            }
+
+            const result = syncBrainToPlanning(targetBrainPath, planningPath);
+            if (result.synced && result.synced.length > 0) {
+                result.synced.forEach(name => {
+                    console.log(t('daemon_synced_file', { name }));
+                });
+            }
+        } catch (err) {
+            console.error(t('daemon_error', { error: err.message }));
+        }
+    };
+
+    // Run initial sync
+    await doSync();
+
+    let debounceTimeout = null;
+    const watcher = fs.watch(watchDir, { recursive: true }, (eventType, filename) => {
+        if (filename && filename.includes('.system_generated') && !filename.endsWith('transcript.jsonl')) {
+            return;
+        }
+
+        if (debounceTimeout) {
+            clearTimeout(debounceTimeout);
+        }
+
+        debounceTimeout = setTimeout(() => {
+            doSync();
+        }, 300);
+    });
+
+    process.on('SIGINT', () => {
+        watcher.close();
+        process.exit(0);
+    });
+    process.on('SIGTERM', () => {
+        watcher.close();
+        process.exit(0);
+    });
+} else if (command === 'branch') {
+    const targetBranch = cleanArgs[1];
+    
+    let currentBranch = '';
+    try {
+        currentBranch = execSync('git rev-parse --abbrev-ref HEAD', { cwd: targetDir, stdio: 'pipe' }).toString().trim();
+    } catch (err) {
+        console.error(t('hooks_no_git'));
+        process.exit(1);
+    }
+
+    if (!targetBranch) {
+        const branchesDir = path.join(targetDir, '.planning', '.branches');
+        const contextBranches = [];
+        if (fs.existsSync(branchesDir)) {
+            const files = fs.readdirSync(branchesDir);
+            for (const file of files) {
+                if (file.startsWith('branch-') && file.endsWith('.json.gz')) {
+                    const name = file.slice(7, -8);
+                    const fullPath = path.join(branchesDir, file);
+                    try {
+                        const stat = fs.statSync(fullPath);
+                        const compressed = fs.readFileSync(fullPath);
+                        const decompressed = zlib.gunzipSync(compressed).toString('utf8');
+                        const stateObj = JSON.parse(decompressed);
+                        contextBranches.push({
+                            name,
+                            timestamp: stateObj.timestamp || stat.mtimeMs
+                        });
+                    } catch {
+                        contextBranches.push({ name, timestamp: 0 });
+                    }
+                }
+            }
+        }
+
+        console.log(t('branch_list_title'));
+        if (contextBranches.length === 0) {
+            console.log(activeLang === 'es' ? '  (No hay ramas de contexto guardadas aún)' : '  (No context branches saved yet)');
+        } else {
+            contextBranches.forEach(b => {
+                const isCurrent = b.name === currentBranch ? '* ' : '  ';
+                const dateStr = b.timestamp ? new Date(b.timestamp).toISOString() : 'unknown';
+                console.log(`${isCurrent}${b.name} (${dateStr})`);
+            });
+        }
+        process.exit(0);
+    }
+    let isDirty = false;
+    try {
+        const status = execSync('git status --porcelain -uno', { cwd: targetDir, stdio: 'pipe' }).toString().trim();
+        if (status) {
+            isDirty = true;
+        }
+    } catch {
+        // Assume clean if command fails
+    }
+
+    if (isDirty) {
+        console.error(t('branch_err_dirty'));
+        process.exit(1);
+    }
+
+    console.log(t('branch_start'));
+
+    saveBranchContext(targetDir, currentBranch);
+    console.log(t('branch_current_saved', { name: currentBranch }));
+
+    let branchExists = false;
+    try {
+        execSync(`git show-ref --verify --quiet refs/heads/${targetBranch}`, { cwd: targetDir, stdio: 'pipe' });
+        branchExists = true;
+    } catch {
+        try {
+            execSync(`git show-ref --verify --quiet refs/remotes/origin/${targetBranch}`, { cwd: targetDir, stdio: 'pipe' });
+            branchExists = true;
+        } catch {}
+    }
+
+    try {
+        if (branchExists) {
+            execSync(`git checkout ${targetBranch}`, { cwd: targetDir, stdio: 'inherit' });
+        } else {
+            execSync(`git checkout -b ${targetBranch}`, { cwd: targetDir, stdio: 'inherit' });
+        }
+        console.log(t('branch_created', { name: targetBranch }));
+    } catch (err) {
+        console.error(`❌ Error switching Git branch: ${err.message}`);
+        process.exit(1);
+    }
+
+    const restored = restoreBranchContext(targetDir, targetBranch);
+    if (restored) {
+        console.log(t('branch_restored', { name: targetBranch }));
+    }
+
+} else if (command === 'merge') {
+    const targetBranch = cleanArgs[1];
+    if (!targetBranch) {
+        console.error(activeLang === 'es' ? '❌ Error: Debes especificar el nombre de la rama a fusionar.' : '❌ Error: You must specify the branch name to merge.');
+        console.error('Usage: yapu merge <branchName>');
+        process.exit(1);
+    }
+
+    try {
+        execSync('git rev-parse --is-inside-work-tree', { cwd: targetDir, stdio: 'pipe' });
+    } catch {
+        console.error(t('hooks_no_git'));
+        process.exit(1);
+    }
+
+    // Pre-calculate completed tasks count before merge
+    let tasksUpdated = 0;
+    try {
+        const statePaths = [];
+        if (fs.existsSync(path.join(targetDir, '.planning', 'STATE.md'))) {
+            statePaths.push(path.join(targetDir, '.planning', 'STATE.md'));
+        }
+        if (fs.existsSync(path.join(targetDir, 'STATE.md'))) {
+            statePaths.push(path.join(targetDir, 'STATE.md'));
+        }
+        const uniquePaths = Array.from(new Set(statePaths));
+        for (const activeStatePath of uniquePaths) {
+            const sourceStateContent = getBranchFileContent(targetDir, targetBranch, 'STATE.md') || getBranchFileContent(targetDir, targetBranch, '.planning/STATE.md');
+            if (sourceStateContent) {
+                const activeStateContent = fs.readFileSync(activeStatePath, 'utf8');
+                const pendingActiveTasks = new Set();
+                const activeLines = activeStateContent.split('\n');
+                const pendingRegex = /^\s*-\s*\[([\s\/])\]\s*(.*)$/;
+                for (const line of activeLines) {
+                    const match = line.match(pendingRegex);
+                    if (match) {
+                        pendingActiveTasks.add(normalizeTaskText(match[2]));
+                    }
+                }
+
+                const completedSourceTasks = new Set();
+                const sourceLines = sourceStateContent.split('\n');
+                const completedRegex = /^\s*-\s*\[[xX]\]\s*(.*)$/;
+                for (const line of sourceLines) {
+                    const match = line.match(completedRegex);
+                    if (match) {
+                        completedSourceTasks.add(normalizeTaskText(match[1]));
+                    }
+                }
+
+                let fileTasksUpdated = 0;
+                for (const task of completedSourceTasks) {
+                    if (pendingActiveTasks.has(task)) {
+                        fileTasksUpdated++;
+                    }
+                }
+                tasksUpdated = Math.max(tasksUpdated, fileTasksUpdated);
+            }
+        }
+    } catch {}
+
+    try {
+        const stateEsPaths = [];
+        if (fs.existsSync(path.join(targetDir, '.planning', 'STATE.es.md'))) {
+            stateEsPaths.push(path.join(targetDir, '.planning', 'STATE.es.md'));
+        }
+        if (fs.existsSync(path.join(targetDir, 'STATE.es.md'))) {
+            stateEsPaths.push(path.join(targetDir, 'STATE.es.md'));
+        }
+        const uniqueEsPaths = Array.from(new Set(stateEsPaths));
+        let esTasksUpdated = 0;
+        for (const activeStatePath of uniqueEsPaths) {
+            const sourceStateContent = getBranchFileContent(targetDir, targetBranch, 'STATE.es.md') || getBranchFileContent(targetDir, targetBranch, '.planning/STATE.es.md');
+            if (sourceStateContent) {
+                const activeStateContent = fs.readFileSync(activeStatePath, 'utf8');
+                const pendingActiveTasks = new Set();
+                const activeLines = activeStateContent.split('\n');
+                const pendingRegex = /^\s*-\s*\[([\s\/])\]\s*(.*)$/;
+                for (const line of activeLines) {
+                    const match = line.match(pendingRegex);
+                    if (match) {
+                        pendingActiveTasks.add(normalizeTaskText(match[2]));
+                    }
+                }
+
+                const completedSourceTasks = new Set();
+                const sourceLines = sourceStateContent.split('\n');
+                const completedRegex = /^\s*-\s*\[[xX]\]\s*(.*)$/;
+                for (const line of sourceLines) {
+                    const match = line.match(completedRegex);
+                    if (match) {
+                        completedSourceTasks.add(normalizeTaskText(match[1]));
+                    }
+                }
+
+                let fileTasksUpdated = 0;
+                for (const task of completedSourceTasks) {
+                    if (pendingActiveTasks.has(task)) {
+                        fileTasksUpdated++;
+                    }
+                }
+                esTasksUpdated = Math.max(esTasksUpdated, fileTasksUpdated);
+            }
+        }
+        tasksUpdated += esTasksUpdated;
+    } catch {}
+
+    console.log(t('merge_start', { name: targetBranch }));
+
+    try {
+        execSync(`git merge ${targetBranch}`, { cwd: targetDir, stdio: 'inherit' });
+    } catch (err) {
+        console.error(`❌ Git merge failed: ${err.message}`);
+        process.exit(1);
+    }
+
+    const statePath = path.join(targetDir, '.planning', '.branches', `branch-${targetBranch}.json.gz`);
+    let sourceStateObj = null;
+    if (fs.existsSync(statePath)) {
+        try {
+            const compressed = fs.readFileSync(statePath);
+            const decompressed = zlib.gunzipSync(compressed).toString('utf8');
+            sourceStateObj = JSON.parse(decompressed);
+        } catch (err) {
+            console.warn(`⚠️ Warning: Could not parse branch context file: ${err.message}`);
+        }
+    }
+
+    harmonizeStateFile(targetDir, targetBranch, 'STATE.md');
+    harmonizeStateFile(targetDir, targetBranch, 'STATE.es.md');
+
+    if (tasksUpdated > 0) {
+        console.log(t('merge_tasks_updated', { count: tasksUpdated }));
+    }
+
+    const learningsAdded = harvestLearnings(targetDir, targetBranch);
+    if (learningsAdded) {
+        console.log(t('merge_learnings_added'));
+    }
+
+    if (sourceStateObj && sourceStateObj.files) {
+        const planningDir = path.join(targetDir, '.planning');
+        for (const [relPath, content] of Object.entries(sourceStateObj.files)) {
+            if (relPath.startsWith('.snapshots') || relPath.startsWith('.branches')) continue;
+            if (relPath === 'config.json' || relPath === 'STATE.md' || relPath === 'ROADMAP.md' || relPath === 'STATE.es.md') continue;
+
+            const targetFilePath = path.join(planningDir, relPath);
+            if (!fs.existsSync(targetFilePath)) {
+                const parentDir = path.dirname(targetFilePath);
+                if (!fs.existsSync(parentDir)) {
+                    fs.mkdirSync(parentDir, { recursive: true });
+                }
+                fs.writeFileSync(targetFilePath, content, 'utf8');
+            }
+        }
+    }
+
+    if (fs.existsSync(statePath)) {
+        try {
+            fs.unlinkSync(statePath);
+        } catch {}
+    }
+
+    console.log(t('merge_success'));
 } else {
     console.log(t('help_title'));
     console.log(t('help_usage'));
@@ -925,6 +2185,13 @@ ${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
     console.log(t('help_dash'));
     console.log(t('help_gc'));
     console.log(t('help_rescue'));
+    console.log(t('help_swarm'));
+    console.log(t('help_snapshot'));
+    console.log(t('help_rewind'));
+    console.log(t('help_profile'));
+    console.log(t('help_daemon'));
+    console.log(t('help_branch'));
+    console.log(t('help_merge'));
     console.log(t('help_health'));
     console.log(t('help_check'));
     console.log(t('help_archive'));
@@ -932,4 +2199,5 @@ ${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
     console.log(t('help_sync'));
     console.log(t('help_handoff'));
     console.log(t('help_brain'));
+    console.log(t('help_board'));
 }

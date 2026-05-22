@@ -92,12 +92,13 @@ El brain de Antigravity es **efímero** (por conversación). El directorio `.pla
 
 ---
 
-## 🛠️ Comandos del CLI (10)
+## 🛠️ Comandos del CLI (11)
 
 ```bash
 yapu init              # 🪺 Funda la colonia (.planning/ + skills completos)
 yapu status            # 📊 Radiografía del proyecto
 yapu dash              # 📟 Monitor TUI en tiempo real (Zero-dependency)
+yapu board [--port N]  # 🌐 Command Center (C2) web — dashboard interactivo en el navegador
 yapu gc                # 🗑️ Recolector de basura contextual (comprime historial)
 yapu rescue <log>      # 🚑 Auto-Heal: lee un error de CI/CD y prepara un fix
 yapu archive           # 📦 Fin de temporada (congela tareas en HISTORY.md)
@@ -112,6 +113,7 @@ yapu brain <list|log>  # 🔍 Inspecciona el brain de Antigravity
 - **`yapu init`** — Scaffolds `.planning/` con 11 subdirectorios + 5 archivos base. Copia 41 workflows, 25 referencias, 3 contextos y 5 plantillas de codebase a `.agents/skills/`. También copia `PROJECT.md`, `ROADMAP.md` y `STATE.md` a la raíz del proyecto. Nunca sobreescribe archivos existentes.
 - **`yapu status`** — Lee `STATE.md` y reporta modo operacional, fase activa, lista de tareas e integridad de specs.
 - **`yapu dash`** — Renderiza un monitor interactivo TUI a 60FPS leyendo el `ROADMAP.md` y los logs de la IA (Sin dependencias).
+- **`yapu board [--port N]`** — Lanza un Command Center (C2) web local con streaming SSE en tiempo real, toggles interactivos de tareas, feed neuronal, y ejecución de comandos por lista blanca. Sin dependencias.
 - **`yapu gc`** — Archiva fases antiguas de `.planning/phases/` y prepara la compresión de tokens (Contextual Garbage Collector).
 - **`yapu rescue <log>`** — Crea instantáneamente una sesión de depuración e instrucción de Auto-Heal para tu IA basada en un log de error.
 - **`yapu archive`** — Congela tareas completadas de `STATE.md` en `HISTORY.md` con marca de tiempo.

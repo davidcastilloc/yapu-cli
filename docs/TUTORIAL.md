@@ -115,6 +115,12 @@ npx @davidsd/yapu-cli dash
 ```
 *You'll see a hacker-style dashboard interface that updates itself as the AI checks off tasks!*
 
+*Want something even more powerful? Launch the **Command Center** in your browser:*
+```bash
+npx @davidsd/yapu-cli board
+```
+*This opens a premium web dashboard where you can see tasks, neural activity from your AI, and even run yapu commands with a single click — all from your browser!*
+
 ### 🌌 3. Night: Save Your Progress (The Handoff)
 When you decide it's time to rest or call it a day, you need to leave a **bookmark** in your development book so that the next day (or if you share your code with another developer) you know exactly where you left off.
 
