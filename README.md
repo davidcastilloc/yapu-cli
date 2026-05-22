@@ -16,7 +16,15 @@ Directly connected to the Antigravity brain.
 
 ---
 
-## 🚀 Installation
+## 🚀 Installation & Usage
+
+You can run YapuCli directly without installing it globally using `npx`:
+
+```bash
+npx @davidsd/yapu-cli <command>
+```
+
+Or install it globally:
 
 ```bash
 npm install -g @davidsd/yapu-cli
