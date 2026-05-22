@@ -1,15 +1,18 @@
 # CURRENT STATE (ANTIGRAVITY MEMORY)
 
-**ACTIVE PHASE:** Phase 5: Internationalization and Full Bilingual Support
+**ACTIVE PHASE:** Phase 7: Multi-Provider Support (Completed)
 
 ## Tasks of the Current Phase
-- [x] Task 1: Refactor `lib/artifacts.js` and `bin/cli.js` to utilize the native `i18n` translation module for all system prompts, CLI outputs, and workspace generation.
-- [x] Task 2: Translate standard project documentation (Architecture, Commands, User Guide, and Versioning) into professional technical English, preserving Spanish counterparts with `.es.md` suffix.
-- [x] Task 3: Expand the automated test suite with bilingual test scenarios and ensure that all 14 tests pass seamlessly.
-- [x] Task 4: Scan and translate all remaining Spanish instructions and placeholders in the English workflows and reference templates under `templates/en`.
-- [/] Task 5: Translate root memory files (`PROJECT.md`, `ROADMAP.md`, `STATE.md`, and `CONTEXT.md`) and register `.es.md` versions to achieve 100% full bilingual coverage.
+- [x] Task 1: Design and implement `lib/providers.js` — centralized provider registry for AI CLI backends (Antigravity, Claude Code, Codex).
+- [x] Task 2: Refactor `lib/artifacts.js` — generalize `detectBrainPath()` with multi-provider auto-detection and fallback.
+- [x] Task 3: Update `yapu swarm` — dynamic provider detection and CLI spawning with `--provider` flag support.
+- [x] Task 4: Implement `yapu provider` — diagnostic command showing installed providers, data paths, and active selection.
+- [x] Task 5: Update `yapu-config.json` templates (en + es) — add `"provider": "auto"` field to workflow config.
+- [x] Task 6: Update `lib/i18n.js` — add provider-related i18n keys and make hardcoded paths generic.
+- [x] Task 7: Full test suite verification — 29/29 tests passing with zero regressions.
 
 ## Execution Context (Notes for the Agent)
-- Operating with English as the primary default language for primary filenames, and Spanish (`.es.md`) as the localized counterpart.
-- All CLI text outputs, warnings, help screens, active sync status, and continuity handoffs are fully localized in both English and Spanish.
-- Running linter and tests at each phase transition to guarantee zero regression and zero external dependencies constraint.
+- Antigravity CLI remains the default provider — zero breaking changes to existing behavior.
+- Provider resolution priority: explicit config > auto-detect (executable + data) > fallback (antigravity).
+- `yapu swarm --provider claude` spawns Claude Code; `yapu swarm --provider codex` spawns Codex CLI.
+- All documentation updated: README (en/es), ROADMAP (en/es), CONTEXT (en/es), COMMANDS (en/es).

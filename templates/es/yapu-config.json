@@ -2,6 +2,7 @@
   "mode": "interactive",
   "granularity": "standard",
   "workflow": {
+    "provider": "auto",
     "research": true,
     "plan_check": true,
     "verifier": true,

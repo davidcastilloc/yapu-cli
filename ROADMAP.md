@@ -24,3 +24,9 @@ This document defines the development life cycle of **Yapu** in isolated phases.
   - [x] Implement `yapu gc` to condense old contextual phases into LORE.md.
   - [x] Implement `yapu rescue` for Auto-Healing in CI/CD pipelines.
   - [x] Implement `yapu-chaos.md` for Autonomous Resilience Engineering.
+- [x] **Phase 7: Multi-Provider Support**
+  - [x] Design and implement `lib/providers.js` — centralized provider registry for AI CLI backends (Antigravity, Claude Code, Codex).
+  - [x] Refactor `lib/artifacts.js` — generalize `detectBrainPath()` with multi-provider auto-detection and fallback.
+  - [x] Update `yapu swarm` — dynamic provider detection and CLI spawning with `--provider` flag support.
+  - [x] Implement `yapu provider` — diagnostic command showing installed providers, data paths, and active selection.
+  - [x] Update `yapu-config.json` templates — add `"provider": "auto"` field to workflow config.

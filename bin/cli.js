@@ -1431,10 +1431,44 @@ ${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
             } catch { /* skip */ }
         }
 
+        // Resolve the AI provider to use for spawning subagents
+        let swarmProvider = null;
+        let swarmProviderKey = 'antigravity';
         try {
-            execSync('which antigravity', { stdio: 'ignore' });
+            const { resolveProvider } = await import('../lib/providers.js');
+            // Check for --provider flag override
+            const providerIdx = cleanArgs.indexOf('--provider');
+            const providerOverride = providerIdx !== -1 ? cleanArgs[providerIdx + 1] : null;
+
+            // Check config for provider setting
+            let configProvider = null;
+            if (fs.existsSync(configPath)) {
+                try {
+                    const configObj = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+                    configProvider = configObj.workflow?.provider || null;
+                } catch { /* skip */ }
+            }
+
+            const resolved = resolveProvider(providerOverride || configProvider);
+            swarmProvider = resolved.config;
+            swarmProviderKey = resolved.key;
         } catch {
-            console.error('❌ Error: the "antigravity" executable was not found in the system PATH.');
+            // Fallback to hardcoded antigravity if providers.js is unavailable
+            swarmProvider = {
+                executable: 'antigravity',
+                buildSpawnArgs: (promptText, attachedFiles = []) => {
+                    const a = ['chat', '-m', 'agent'];
+                    for (const f of attachedFiles) a.push('-a', f);
+                    a.push(promptText);
+                    return a;
+                }
+            };
+        }
+
+        try {
+            execSync(`which ${swarmProvider.executable}`, { stdio: 'ignore' });
+        } catch {
+            console.error(`❌ Error: the "${swarmProvider.executable}" executable was not found in the system PATH.`);
             process.exit(1);
         }
 
@@ -1481,22 +1515,22 @@ Instructions:
 4. Once successfully completed and verified, exit with code 0.
 `;
 
-            const args = ['chat', '-m', 'agent'];
+            const attachedFiles = [];
             task.files.forEach(f => {
                 const fullPath = path.resolve(targetDir, f);
                 if (fs.existsSync(fullPath)) {
-                    args.push('-a', f);
+                    attachedFiles.push(f);
                 }
             });
 
             const workflowPath = path.join(targetDir, '.agents', 'skills', 'yapu-execute.md');
             if (fs.existsSync(workflowPath)) {
-                args.push('-a', '.agents/skills/yapu-execute.md');
+                attachedFiles.push('.agents/skills/yapu-execute.md');
             }
 
-            args.push(promptText);
+            const args = swarmProvider.buildSpawnArgs(promptText, attachedFiles);
 
-            const child = spawn('antigravity', args, {
+            const child = spawn(swarmProvider.executable, args, {
                 cwd: targetDir,
                 stdio: ['pipe', 'pipe', 'pipe']
             });
@@ -1856,7 +1890,22 @@ Instructions:
     let brainPath = brainIdx !== -1 ? cleanArgs[brainIdx + 1] : null;
 
     const homeDir = os.homedir();
-    const brainBaseDir = path.join(homeDir, '.gemini', 'antigravity-cli', 'brain');
+    let brainBaseDir;
+    try {
+        const { resolveProvider: rp } = await import('../lib/providers.js');
+        let configProvider = null;
+        const cfgPath = path.join(targetDir, '.planning', 'config.json');
+        if (fs.existsSync(cfgPath)) {
+            try {
+                const cfgObj = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+                configProvider = cfgObj.workflow?.provider || null;
+            } catch { /* skip */ }
+        }
+        const resolved = rp(configProvider);
+        brainBaseDir = resolved.config.brainPath(homeDir);
+    } catch {
+        brainBaseDir = path.join(homeDir, '.gemini', 'antigravity-cli', 'brain');
+    }
     const watchDir = brainPath || brainBaseDir;
 
     if (!fs.existsSync(watchDir)) {
@@ -2177,6 +2226,50 @@ Instructions:
     }
 
     console.log(t('merge_success'));
+} else if (command === 'provider') {
+    // ── YAPU PROVIDER DIAGNOSTICS ───────────────────────────────────────────
+    console.log(t('provider_title'));
+    try {
+        const { detectProviders, resolveProvider } = await import('../lib/providers.js');
+        const providers = detectProviders();
+
+        // Read config for provider override
+        let configProvider = null;
+        const cfgPath = path.join(targetDir, '.planning', 'config.json');
+        if (fs.existsSync(cfgPath)) {
+            try {
+                const cfgObj = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+                configProvider = cfgObj.workflow?.provider || null;
+            } catch { /* skip */ }
+        }
+
+        const active = resolveProvider(configProvider);
+
+        console.log(t('provider_detected'));
+        for (const p of providers) {
+            if (p.installed || p.hasData) {
+                let sessionCount = 0;
+                if (p.hasData) {
+                    try {
+                        const entries = fs.readdirSync(p.dataPath);
+                        sessionCount = entries.filter(e => {
+                            try { return fs.statSync(path.join(p.dataPath, e)).isDirectory(); } catch { return false; }
+                        }).length;
+                    } catch { /* skip */ }
+                }
+                const dataInfo = p.hasData ? t('provider_has_data', { sessions: sessionCount }) : t('provider_no_data');
+                console.log(t('provider_installed', { name: p.name, path: p.dataPath }) + dataInfo);
+            } else {
+                console.log(t('provider_not_installed', { name: p.name }));
+            }
+        }
+
+        const mode = configProvider && configProvider !== 'auto' ? configProvider : 'auto-detected';
+        console.log(t('provider_active', { name: active.config.name, mode }));
+    } catch (err) {
+        console.error(`❌ Error loading providers: ${err.message}`);
+        process.exit(1);
+    }
 } else {
     console.log(t('help_title'));
     console.log(t('help_usage'));
@@ -2199,5 +2292,6 @@ Instructions:
     console.log(t('help_sync'));
     console.log(t('help_handoff'));
     console.log(t('help_brain'));
+    console.log(t('help_provider'));
     console.log(t('help_board'));
 }

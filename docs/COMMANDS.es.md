@@ -3,7 +3,7 @@
 Documentación completa de todos los comandos disponibles en YapuCli.
 
 > [!NOTE]
-> Todos los comandos auto-detectan la sesión activa del brain de Antigravity. Usa `--brain-path` para override manual.
+> Todos los comandos auto-detectan la sesión activa del proveedor IA (Antigravity, Claude Code o Codex). Usa `--brain-path` para override manual.
 
 ---
 
@@ -459,6 +459,53 @@ yapu board [--port N]
 
 ---
 
+## 14. `yapu provider`
+
+Comando de diagnóstico para inspeccionar los proveedores IA CLI detectados.
+
+### Uso
+
+```bash
+yapu provider
+```
+
+### Comportamiento
+
+- Escanea el sistema en busca de proveedores IA CLI conocidos: **Antigravity CLI**, **Claude Code** y **Codex CLI**.
+- Para cada proveedor, verifica:
+  - Si el ejecutable está instalado en PATH
+  - Si el directorio de datos existe (ej: `~/.gemini/antigravity-cli/brain/`, `~/.claude/projects/`, `~/.codex/sessions/`)
+  - Cantidad de sesiones/conversaciones encontradas
+- Muestra cuál proveedor está **activo** y si fue auto-detectado o configurado explícitamente.
+- Prioridad de selección: config explícita `provider` en `yapu-config.json` > auto-detección (ejecutable + datos) > default (antigravity)
+
+### Ejemplo de salida
+
+```termynal
+=== 🪺 YAPU PROVIDER DIAGNOSTICS ===
+🔍 Proveedores detectados:
+  ✅ Antigravity CLI  → ~/.gemini/antigravity-cli/brain (60 sesiones)
+  ✅ Claude Code  → ~/.claude/projects (4 sesiones)
+  ✅ Codex CLI  → ~/.codex/sessions (1 sesiones)
+  ⚡ Activo: Antigravity CLI (auto-detected)
+```
+
+### Configuración
+
+Establece el campo `provider` en `.planning/config.json` bajo `workflow`:
+
+```json
+{
+  "workflow": {
+    "provider": "auto"
+  }
+}
+```
+
+Valores válidos: `"auto"` (por defecto), `"antigravity"`, `"claude"`, `"codex"`.
+
+---
+
 ## Ayuda General
 
 Al ejecutar `yapu` sin argumentos se muestra la pantalla de ayuda con todos los comandos disponibles:
@@ -482,6 +529,7 @@ Comandos disponibles:
   handoff         Genera archivos de traspaso (auto-detectado)
   brain           Inspecciona directorio brain (list, log) (auto-detectado)
   board [--port N] Lanza el Command Center (C2) web interactivo
+  provider        Diagnóstico de proveedores IA detectados en el sistema
 
 Ejecuta 'yapu <comando> --help' para más información sobre un comando.
 ```

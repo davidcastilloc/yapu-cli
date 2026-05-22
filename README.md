@@ -8,7 +8,7 @@
 
 # YapuCli 🪺
 
-**Context engineering and static memory framework for Antigravity CLI.**
+**Context engineering and static memory framework for AI coding agents (Antigravity, Claude Code, Codex).**
 Directly connected to the Antigravity brain.
 
 > Inspired by the **yapú** (*Psarocolius decumanus*), a Venezuelan bird that weaves hanging nests over a meter long that defy gravity.
@@ -92,7 +92,7 @@ The Antigravity brain is **ephemeral** (per conversation). The `.planning/` dire
 
 ---
 
-## 🛠️ CLI Commands (11)
+## 🛠️ CLI Commands (12)
 
 ```bash
 yapu init              # 🪺 Founds the colony (.planning/ + complete skills)
@@ -106,6 +106,7 @@ yapu install-hooks     # 🐝 Deploys the hornet's nest (Yapu Guard)
 yapu sync              # 🔄 Syncs Antigravity brain → .planning/
 yapu handoff           # 🤝 Generates handoff for the next session
 yapu brain <list|log>  # 🔍 Inspects the Antigravity brain
+yapu provider          # 🔍 Diagnostics of detected AI providers
 ```
 
 ### Command Details
@@ -122,6 +123,7 @@ yapu brain <list|log>  # 🔍 Inspects the Antigravity brain
 - **`yapu handoff`** — Generates `HANDOFF.json` + `.continue-here.md` for session continuity.
 - **`yapu brain list --path <path>`** — Lists brain artifacts by type, summary, and date.
 - **`yapu brain log --path <path> -n N`** — Displays the last N entries of the conversation log.
+- **`yapu provider`** — Diagnostic command that detects installed AI CLI providers (Antigravity, Claude Code, Codex), shows their data paths, session counts, and which provider is currently active.
 
 ---
 

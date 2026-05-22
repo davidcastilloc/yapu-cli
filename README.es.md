@@ -8,7 +8,7 @@
 
 # YapuCli 🪺
 
-**Framework de ingeniería de contexto y memoria estática para Antigravity CLI.**
+**Framework de ingeniería de contexto y memoria estática para agentes de código IA (Antigravity, Claude Code, Codex).**
 Conectado directamente al brain de Antigravity.
 
 > Inspirado en el **yapú** (*Psarocolius decumanus*), ave venezolana que teje nidos colgantes de más de un metro que desafían la gravedad.
@@ -92,7 +92,7 @@ El brain de Antigravity es **efímero** (por conversación). El directorio `.pla
 
 ---
 
-## 🛠️ Comandos del CLI (11)
+## 🛠️ Comandos del CLI (12)
 
 ```bash
 yapu init              # 🪺 Funda la colonia (.planning/ + skills completos)
@@ -106,6 +106,7 @@ yapu install-hooks     # 🐝 Despliega el avispero (Yapu Guard)
 yapu sync              # 🔄 Sincroniza brain de Antigravity → .planning/
 yapu handoff           # 🤝 Genera handoff para la siguiente sesión
 yapu brain <list|log>  # 🔍 Inspecciona el brain de Antigravity
+yapu provider          # 🔍 Diagnóstico de proveedores IA detectados
 ```
 
 ### Detalle de Comandos
@@ -122,6 +123,7 @@ yapu brain <list|log>  # 🔍 Inspecciona el brain de Antigravity
 - **`yapu handoff`** — Genera `HANDOFF.json` + `.continue-here.md` para continuidad de sesión.
 - **`yapu brain list --path <path>`** — Lista artefactos del brain con tipo, resumen y fecha.
 - **`yapu brain log --path <path> -n N`** — Muestra las últimas N entradas del log de conversación.
+- **`yapu provider`** — Comando de diagnóstico que detecta los CLIs de IA instalados (Antigravity, Claude Code, Codex), muestra sus rutas de datos, cantidad de sesiones, y cuál proveedor está activo.
 
 ---
 

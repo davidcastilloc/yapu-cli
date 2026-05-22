@@ -3,7 +3,7 @@
 Complete documentation of all available commands in YapuCli.
 
 > [!NOTE]
-> All commands auto-detect the active Antigravity brain session. Use `--brain-path` for manual override.
+> All commands auto-detect the active AI provider session (Antigravity, Claude Code, or Codex). Use `--brain-path` for manual override.
 
 ---
 
@@ -499,6 +499,53 @@ yapu board [--port N]
 
 ---
 
+## 14. `yapu provider`
+
+Diagnostic command to inspect detected AI CLI providers.
+
+### Usage
+
+```bash
+yapu provider
+```
+
+### Behavior
+
+- Scans the system for known AI CLI providers: **Antigravity CLI**, **Claude Code**, and **Codex CLI**.
+- For each provider, checks:
+  - Whether the executable is installed in PATH
+  - Whether the data directory exists (e.g., `~/.gemini/antigravity-cli/brain/`, `~/.claude/projects/`, `~/.codex/sessions/`)
+  - Number of sessions/conversations found
+- Shows which provider is currently **active** and whether it was auto-detected or explicitly configured.
+- Provider selection priority: explicit `provider` config in `yapu-config.json` > auto-detect (executable + data) > default (antigravity)
+
+### Example Output
+
+```termynal
+=== 🪺 YAPU PROVIDER DIAGNOSTICS ===
+🔍 Detected providers:
+  ✅ Antigravity CLI  → ~/.gemini/antigravity-cli/brain (60 sessions)
+  ✅ Claude Code  → ~/.claude/projects (4 sessions)
+  ✅ Codex CLI  → ~/.codex/sessions (1 sessions)
+  ⚡ Active: Antigravity CLI (auto-detected)
+```
+
+### Configuration
+
+Set the `provider` field in `.planning/config.json` under `workflow`:
+
+```json
+{
+  "workflow": {
+    "provider": "auto"
+  }
+}
+```
+
+Valid values: `"auto"` (default), `"antigravity"`, `"claude"`, `"codex"`.
+
+---
+
 ## General Help
 
 Executing `yapu` without arguments displays the help screen listing all available commands:
@@ -521,4 +568,5 @@ Usage:
   yapu handoff           -> Generates handoff for the next session (auto-detected).
   yapu brain <list|log>  -> Inspects Antigravity brain (auto-detected).
   yapu board [--port N]  -> Web Command Center (C2) — interactive dashboard.
+  yapu provider          -> Diagnostics of detected AI providers in the system.
 ```

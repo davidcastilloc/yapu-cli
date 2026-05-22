@@ -23,6 +23,8 @@ YAPU.cli.status-command=Running `yapu status` parses STATE.md and reports the ac
 YAPU.cli.archive-command=Running `yapu archive` programmatically moves completed [x] tasks from STATE.md to HISTORY.md and resets the tasks block.
 YAPU.cli.install-hooks-command=Running `yapu install-hooks` deploys Yapu Guard into .git/hooks/pre-commit with executable permissions.
 YAPU.cli.yapu-guard=Yapu Guard is a native Node.js pre-commit script that scans staged files against PROJECT.md architectural mandaments.
+YAPU.cli.provider-command=Running `yapu provider` displays a diagnostic of all detected AI CLI providers (Antigravity, Claude Code, Codex) with installation status, data paths, and active provider.
+YAPU.cli.multi-provider=Yapu supports multiple AI CLI providers via `lib/providers.js`. The active provider is resolved by priority: explicit config > auto-detect (executable + data) > default (antigravity).
 
 ## 3. Workflow and System Prompt Execution Rules
 
