@@ -870,8 +870,18 @@ setTimeout(() => {
             daemonOutput += data.toString();
         });
 
-        // Wait a small moment to ensure the daemon is running and watching
-        await new Promise(resolve => setTimeout(resolve, 600));
+        // Wait until the daemon prints that it's watching (event-driven, not fixed timeout)
+        await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Daemon startup timeout')), 5000);
+            const check = () => {
+                if (daemonOutput.includes('Observando cambios en')) {
+                    clearTimeout(timeout);
+                    resolve();
+                }
+            };
+            daemonProcess.stdout.on('data', check);
+            check(); // Check if already received
+        });
 
         // Create an artifact in mockBrainDir
         const mdPath = path.join(mockBrainDir, 'implementation_plan.md');
@@ -887,8 +897,8 @@ setTimeout(() => {
         fs.writeFileSync(mdPath, planContent, 'utf8');
         fs.writeFileSync(metaPath, planMeta, 'utf8');
 
-        // Wait for the debounced sync (300ms + 500ms padding)
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Wait for the debounced sync (300ms debounce + generous padding for CI)
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         // Stop the daemon process cleanly
         daemonProcess.kill('SIGINT');
