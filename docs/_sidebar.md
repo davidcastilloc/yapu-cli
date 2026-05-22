@@ -9,6 +9,7 @@
   <p class="sidebar-lang-title">Colonia Yapu</p>
   <ul>
     <li><a href="#/README.md">🏠 Inicio</a></li>
+    <li><a href="#/TUTORIAL.es.md">🐣 Mi Primer Día (Tutorial)</a></li>
   </ul>
   
   <p class="sidebar-lang-title">Conocimiento</p>
@@ -25,6 +26,7 @@
   <p class="sidebar-lang-title">Yapu Colony</p>
   <ul>
     <li><a href="#/README.md">🏠 Home</a></li>
+    <li><a href="#/TUTORIAL.md">🐣 My First Day (Tutorial)</a></li>
   </ul>
 
   <p class="sidebar-lang-title">Knowledge</p>

@@ -14,6 +14,12 @@
 </p>
 
 <div class="cards-grid">
+  <a href="#/TUTORIAL.md" class="card-item">
+    <div class="card-icon">🐣</div>
+    <h3 class="card-title">My First Day (Tutorial)</h3>
+    <p class="card-desc">Super simple, step-by-step illustrated guide to learn programming using Yapu and your AI assistant.</p>
+  </a>
+
   <a href="#/ARCHITECTURE.md" class="card-item">
     <div class="card-icon">🏛️</div>
     <h3 class="card-title">Memory Architecture</h3>
