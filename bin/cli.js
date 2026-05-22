@@ -1466,7 +1466,7 @@ ${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
         }
 
         try {
-            execSync(`which ${swarmProvider.executable}`, { stdio: 'ignore' });
+            execSync(`command -v ${swarmProvider.executable}`, { stdio: 'ignore' });
         } catch {
             console.error(`❌ Error: the "${swarmProvider.executable}" executable was not found in the system PATH.`);
             process.exit(1);
