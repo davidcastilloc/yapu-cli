@@ -16,21 +16,44 @@ Conectado directamente al brain de Antigravity.
 
 ---
 
-## 🚀 Instalación y Uso
+## 🚀 Inicio Rápido (Onboarding en 60 Segundos)
 
-Puedes ejecutar YapuCli directamente sin instalarlo de forma global utilizando `npx`:
+### 1. Instalación y Fundación
+Entra en la carpeta de tu proyecto y ejecuta el inicializador de Yapu:
 
 ```bash
-npx @davidsd/yapu-cli <comando>
+npx @davidsd/yapu-cli init
 ```
 
-O instalarlo globalmente:
+*Esto creará en tu raíz los archivos esenciales de memoria estática (`PROJECT.md`, `ROADMAP.md`, `STATE.md`) y la carpeta `.planning/`.*
+
+### 2. Alinear a tu IA
+Abre tu chat de IA (Cursor, Cline, Windsurf, etc.) e inícialo con este prompt exacto:
+
+> **Prompt inicial:** "Lee los archivos `PROJECT.md`, `ROADMAP.md` y `STATE.md` para entender las reglas de nuestra aplicación, el plan general y en qué tarea estamos trabajando hoy. ¡Por favor, toma la primera tarea pendiente de `STATE.md` y desarrollemos el código!"
+
+### 3. Monitoreo en Tiempo Real
+Mientras tu IA escribe y tacha tareas en vivo (`[x]`), puedes abrir una segunda terminal y correr el monitor interactivo:
+
+```bash
+npx @davidsd/yapu-cli dash
+```
+
+*¡Verás una interfaz TUI ultra-rápida y fluida estilo Matrix actualizándose con tu progreso en tiempo real!*
+
+---
+
+### 📦 Instalación Tradicional (Opcional)
+
+Si prefieres tener YapuCli disponible de forma global en tu sistema, puedes instalarlo usando:
 
 ```bash
 npm install -g @davidsd/yapu-cli
 ```
 
-**Zero dependencies** — solo `node:fs` y `node:path`.
+Una vez instalado globalmente, puedes ejecutar cualquier comando directamente usando `yapu` (por ejemplo, `yapu init`, `yapu dash`, etc.).
+
+**Zero dependencies** — nativo con `node:fs` y `node:path`.
 
 🤖 **¿Eres una IA (o usas una)?** Carga el [Prompt Instalador para LLMs](docs/LLM_INSTALLER.es.md) en tu agente para que instale, configure y asimile las reglas de Yapu automáticamente.
 

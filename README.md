@@ -16,21 +16,44 @@ Directly connected to the Antigravity brain.
 
 ---
 
-## 🚀 Installation & Usage
+## 🚀 Quick Start (60-Second Onboarding)
 
-You can run YapuCli directly without installing it globally using `npx`:
+### 1. Installation & Foundation
+Go into your project directory and run the Yapu initializer:
 
 ```bash
-npx @davidsd/yapu-cli <command>
+npx @davidsd/yapu-cli init
 ```
 
-Or install it globally:
+*This scaffolds the core static memory files (`PROJECT.md`, `ROADMAP.md`, `STATE.md`) along with the `.planning/` directory.*
+
+### 2. Align Your AI
+Open your AI chat interface (Cursor, Cline, Windsurf, etc.) and kick off the session with this exact prompt:
+
+> **Initial Prompt:** "Read the `PROJECT.md`, `ROADMAP.md`, and `STATE.md` files to understand our application's rules, the general roadmap, and today's active tasks. Please grab the first pending task from `STATE.md` and let's start writing some code!"
+
+### 3. Real-Time Dashboard
+As your AI assistant codes and checks off tasks (`[x]`), you can open a secondary terminal to run the interactive dashboard:
+
+```bash
+npx @davidsd/yapu-cli dash
+```
+
+*Enjoy a beautiful, zero-dependency TUI dashboard showing week's worth of progress in real time!*
+
+---
+
+### 📦 Traditional Installation (Optional)
+
+If you prefer to have YapuCli globally available on your system, you can install it using:
 
 ```bash
 npm install -g @davidsd/yapu-cli
 ```
 
-**Zero dependencies** — only `node:fs` y `node:path`.
+Once globally installed, you can run any command directly using `yapu` (e.g., `yapu init`, `yapu dash`, etc.).
+
+**Zero dependencies** — built natively using `node:fs` and `node:path`.
 
 🤖 **Are you an AI (or do you use one)?** Load the [LLM Installer Prompt](docs/LLM_INSTALLER.md) into your agent so it automatically installs, configures, and assimilates the Yapu rules.
 
