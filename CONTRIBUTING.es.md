@@ -59,8 +59,13 @@ gh pr create
 
 ```
 yapu-cli/
-├── bin/cli.js              # CLI principal (7 comandos)
-├── lib/artifacts.js        # Módulo bridge con el brain de Antigravity
+├── bin/cli.js              # CLI principal (22 comandos)
+├── lib/
+│   ├── artifacts.js        # Módulo bridge con el brain de Antigravity
+│   ├── board.js            # Servidor web Command Center (C2)
+│   ├── dashboard.js        # Dashboard TUI sin dependencias
+│   ├── i18n.js             # Sistema de internacionalización bilingüe
+│   └── providers.js        # Soporte multi-proveedor de agentes IA
 ├── index.js                # Entry point del paquete
 ├── templates/              # Plantillas desplegadas por yapu init
 │   ├── yapu-*.md           # 41 workflows con Pre/Post-Sync
@@ -68,9 +73,9 @@ yapu-cli/
 │   ├── references/         # 25 archivos de referencia
 │   ├── contexts/           # 3 contextos operacionales
 │   └── codebase/           # 5 templates de análisis
-├── tests/cli.test.js       # Tests de integración (10 tests)
+├── tests/cli.test.js       # Tests de integración (29 tests)
 ├── docs/                   # Documentación
-│   ├── COMMANDS.md          # Referencia de los 7 comandos
+│   ├── COMMANDS.md          # Referencia de comandos del CLI
 │   ├── ARCHITECTURE.md      # Arquitectura del framework
 │   └── USER-GUIDE.md        # Guía de usuario
 └── .github/                # Configuración de GitHub
@@ -157,9 +162,7 @@ node bin/cli.js brain list --path /ruta/al/brain
 
 | Área | Descripción | Dificultad |
 |------|-------------|------------|
-| `yapu health` | Comando para validar integridad del workspace | 🟡 Media |
-| Auto-detección de `brainPath` | Detectar el brain de Antigravity sin `--brain-path` | 🔴 Alta |
-| Tests unitarios de `lib/artifacts.js` | Tests directos del módulo (no solo integration) | 🟢 Baja |
+| Tests unitarios de módulos `lib/` | Tests directos de los módulos lib (no solo integration) | 🟢 Baja |
 | Traducciones | README y docs en inglés | 🟢 Baja |
 | Nuevos workflows | Templates para casos de uso específicos | 🟡 Media |
 

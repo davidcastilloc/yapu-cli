@@ -17,7 +17,7 @@ YAPU.architecture.state-machine-flag=STATE.md contiene una bandera de modo opera
 ## 2. Herramientas CLI y Comandos
 
 YAPU.cli.executable=El comando CLI global o local se llama `yapu` y está definido en `bin/cli.js`.
-YAPU.cli.init-command=Ejecutar `yapu init` copia las plantillas (PROJECT.md, ROADMAP.md, STATE.md) y 10 directivas de flujo de trabajo al espacio de trabajo del usuario.
+YAPU.cli.init-command=Ejecutar `yapu init` copia las plantillas (PROJECT.md, ROADMAP.md, STATE.md) y 40+ directivas de flujo de trabajo, 11 schemas, 25 referencias, 3 contextos, 5 plantillas de codebase al espacio de trabajo del usuario.
 YAPU.cli.overwrite-protection=El comando `yapu init` nunca sobrescribe los archivos de destino existentes para evitar la pérdida de datos.
 YAPU.cli.status-command=Ejecutar `yapu status` analiza STATE.md e informa el modo activo, el nombre de la fase, la lista de tareas y el estado de las Specs.
 YAPU.cli.archive-command=Ejecutar `yapu archive` mueve programáticamente las tareas completadas [x] de STATE.md a HISTORY.md y reinicia el bloque de tareas.
@@ -25,6 +25,9 @@ YAPU.cli.install-hooks-command=Ejecutar `yapu install-hooks` despliega Yapu Guar
 YAPU.cli.yapu-guard=Yapu Guard es un script pre-commit de Node.js nativo que escanea los archivos en el área de preparación (stage) contra los mandamientos arquitectónicos de PROJECT.md.
 YAPU.cli.provider-command=Ejecutar `yapu provider` muestra un diagnóstico de todos los proveedores IA CLI detectados (Antigravity, Claude Code, Codex) con estado de instalación, rutas de datos y proveedor activo.
 YAPU.cli.multi-provider=Yapu soporta múltiples proveedores IA CLI mediante `lib/providers.js`. El proveedor activo se resuelve por prioridad: config explícita > auto-detección (ejecutable + datos) > default (antigravity).
+YAPU.cli.lib-modules=El CLI se compone de 5 módulos de librería: `artifacts.js`, `board.js`, `dashboard.js`, `i18n.js`, `providers.js`.
+YAPU.cli.command-count=22 comandos en total (incluyendo subcomandos).
+PROVIDERS.supported=antigravity, claude, codex
 
 ## 3. Flujo de Trabajo y Reglas de Ejecución de Prompts de Sistema
 

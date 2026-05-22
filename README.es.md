@@ -49,6 +49,10 @@ Si prefieres tener YapuCli disponible de forma global en tu sistema, puedes inst
 
 ```bash
 npm install -g @davidsd/yapu-cli
+# o con pnpm
+pnpm add -g @davidsd/yapu-cli
+# o con yarn
+yarn global add @davidsd/yapu-cli
 ```
 
 Una vez instalado globalmente, puedes ejecutar cualquier comando directamente usando `yapu` (por ejemplo, `yapu init`, `yapu dash`, etc.).
@@ -92,7 +96,7 @@ El brain de Antigravity es **efímero** (por conversación). El directorio `.pla
 
 ---
 
-## 🛠️ Comandos del CLI (12)
+## 🛠️ Comandos del CLI (22)
 
 ```bash
 yapu init              # 🪺 Funda la colonia (.planning/ + skills completos)
@@ -183,7 +187,7 @@ Además de la organización, YapuCli instala plantillas avanzadas (`.agents/skil
 
 ## 🧪 Tests e Infraestructura
 
-10/10 pruebas de integración · ESLint clean
+29 pruebas de integración · ESLint clean
 
 ```bash
 npm run test    # Suite completa de integración

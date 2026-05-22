@@ -19,7 +19,7 @@ This document defines the development life cycle of **Yapu** in isolated phases.
   - Implement the `yapu archive` and `yapu install-hooks` commands in the CLI.
 - [x] **Phase 5: Workspace Check and Diagnostics Tool**
   - Design the `yapu check` command to verify if a workspace has an intact memory triad and is free from prohibited references.
-- [ ] **Phase 6: Autonomous Agents & Resiliency**
+- [x] **Phase 6: Autonomous Agents & Resiliency**
   - [x] Implement `yapu dash` for a zero-dependency TUI dashboard.
   - [x] Implement `yapu gc` to condense old contextual phases into LORE.md.
   - [x] Implement `yapu rescue` for Auto-Healing in CI/CD pipelines.

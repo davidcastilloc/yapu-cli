@@ -19,9 +19,9 @@ The development of Yapu is structured around the following Git branches:
 
 ## Publication on the Package Registry (npm)
 
-The official distribution is published in the `npm` package registry under the name `yapu-cli`:
+The official distribution is published in the `npm` package registry under the name `@davidsd/yapu-cli`:
 
 ```bash
 # Recommended stable installation
-npm install -g yapu-cli
+npm install -g @davidsd/yapu-cli
 ```

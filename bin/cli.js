@@ -501,23 +501,23 @@ if (command === 'init') {
         }
     });
 
-    // ── Inyección de Memoria Global (Hive Mind) ──────────────────────
+    // ── Global Memory Injection (Hive Mind) ──────────────────────
     const globalPatternsPath = path.join(os.homedir(), '.yapu', 'global-patterns.md');
     const targetProjectMd = path.join(targetDir, 'PROJECT.md');
     
     if (fs.existsSync(globalPatternsPath) && fs.existsSync(targetProjectMd)) {
-        console.log('🧠 Inyectando memoria global desde proyectos anteriores...');
+        console.log(t('init_hivemind_injecting'));
         const globalPatterns = fs.readFileSync(globalPatternsPath, 'utf8');
         let projectMdContent = fs.readFileSync(targetProjectMd, 'utf8');
         
-        // Evitar inyectar múltiples veces si ya existe
-        if (!projectMdContent.includes('## 🧠 Mandamientos Globales (Aprendidos)')) {
-            projectMdContent += '\n## 🧠 Mandamientos Globales (Aprendidos)\n';
-            projectMdContent += '> Estas reglas fueron aprendidas por Yapu en proyectos anteriores y son de cumplimiento obligatorio.\n\n';
+        const hivemindHeader = t('init_hivemind_header');
+        if (!projectMdContent.includes(hivemindHeader)) {
+            projectMdContent += '\n' + hivemindHeader + '\n';
+            projectMdContent += '> ' + t('init_hivemind_description') + '\n\n';
             projectMdContent += globalPatterns + '\n';
             
             fs.writeFileSync(targetProjectMd, projectMdContent, 'utf8');
-            console.log('✅ Mandamientos globales inyectados en PROJECT.md.');
+            console.log(t('init_hivemind_done'));
         }
     }
 
@@ -965,7 +965,7 @@ if (command === 'init') {
     const stateContent = fs.readFileSync(finalStatePath, 'utf8');
 
     // 1. Check for unresolved placeholders
-    const placeholderRegex = /\[Insert[^\]]*\]|TBD|TODO(?!\s*\()/gi;
+    const placeholderRegex = /\[Insert[^\]]*\]|TBD|TODO(?!\s*\()/i;
     const lines = projectContent.split('\n');
     lines.forEach((line, index) => {
         if (placeholderRegex.test(line)) {
@@ -987,7 +987,7 @@ if (command === 'init') {
     // 3. Phase contradiction (Optional: could match PROJECT vs STATE)
     const activePhaseMatch = stateContent.match(/\*\*FASE ACTIVA:\*\*\s*(.+)/i) || stateContent.match(/\*\*ACTIVE PHASE:\*\*\s*(.+)/i);
     const statePhase = activePhaseMatch ? activePhaseMatch[1].trim().toLowerCase() : '';
-    if (statePhase && statePhase.includes('unknown') || statePhase.includes('desconocida')) {
+    if (statePhase && (statePhase.includes('unknown') || statePhase.includes('desconocida'))) {
         console.warn(t('check_warn_contradiction'));
         antiPatterns++;
     }

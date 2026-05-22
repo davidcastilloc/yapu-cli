@@ -17,9 +17,9 @@ Este documento define el ciclo de vida del desarrollo de **Yapu** en fases aisla
   - Diseñar los workflows especializados (`yapu-secops.md`, `yapu-dba.md`, `yapu-ui.md`).
   - Diseñar el modo forense detective (`yapu-forensics.md`).
   - Implementar los comandos `yapu archive` y `yapu install-hooks` en el CLI.
-- [ ] **Fase 5: Herramienta de Chequeo y Diagnóstico**
+- [x] **Fase 5: Herramienta de Chequeo y Diagnóstico**
   - Diseñar el comando `yapu check` para verificar si un espacio de trabajo tiene una tríada de memoria íntegra y sin referencias prohibidas.
-- [ ] **Fase 6: Agentes Autónomos & Resiliencia**
+- [x] **Fase 6: Agentes Autónomos & Resiliencia**
   - [x] Implementar `yapu dash` para un dashboard TUI sin dependencias.
   - [x] Implementar `yapu gc` para condensar fases contextuales antiguas en LORE.md.
   - [x] Implementar `yapu rescue` para Auto-Heal en pipelines CI/CD.

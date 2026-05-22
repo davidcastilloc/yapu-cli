@@ -59,8 +59,13 @@ gh pr create
 
 ```
 yapu-cli/
-├── bin/cli.js              # Main CLI entry point (7 commands)
-├── lib/artifacts.js        # Bridge module with the Antigravity brain
+├── bin/cli.js              # Main CLI entry point (22 commands)
+├── lib/
+│   ├── artifacts.js        # Bridge module with the Antigravity brain
+│   ├── board.js            # Web Command Center (C2) server
+│   ├── dashboard.js        # Zero-dependency TUI dashboard
+│   ├── i18n.js             # Bilingual internationalization system
+│   └── providers.js        # Multi-provider AI agent support
 ├── index.js                # Package entry point
 ├── templates/              # Templates deployed by yapu init
 │   ├── yapu-*.md           # 41 workflows with Pre/Post-Sync
@@ -68,9 +73,9 @@ yapu-cli/
 │   ├── references/         # 25 reference files
 │   ├── contexts/           # 3 operational contexts
 │   └── codebase/           # 5 analysis templates
-├── tests/cli.test.js       # Integration tests (10 tests)
+├── tests/cli.test.js       # Integration tests (29 tests)
 ├── docs/                   # Documentation
-│   ├── COMMANDS.md          # 7 commands reference guide
+│   ├── COMMANDS.md          # CLI commands reference guide
 │   ├── ARCHITECTURE.md      # Framework architecture document
 │   └── USER-GUIDE.md        # User guide
 └── .github/                # GitHub configuration
@@ -157,9 +162,7 @@ node bin/cli.js brain list --path /path/to/brain
 
 | Area | Description | Difficulty |
 |------|-------------|------------|
-| `yapu health` | Command to validate workspace and project structure integrity | 🟡 Medium |
-| `brainPath` Auto-detection | Automatically locate the Antigravity brain without needing `--brain-path` | 🔴 High |
-| Unit tests for `lib/artifacts.js` | Dedicated unit tests for the module (not just CLI-level integration tests) | 🟢 Low |
+| Unit tests for `lib/` modules | Dedicated unit tests for lib modules (not just CLI-level integration tests) | 🟢 Low |
 | Translations | Documentation and workflows in English | 🟢 Low |
 | New Workflows | Custom agent workflow templates for specific use-cases | 🟡 Medium |
 

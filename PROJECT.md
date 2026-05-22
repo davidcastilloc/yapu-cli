@@ -4,7 +4,7 @@
 YapuCli is a lightweight context-engineering and static memory structuring framework for the Antigravity console. It exists to combat context rot by organizing development into isolated phases via a triad of Markdown files (`PROJECT.md`, `ROADMAP.md`, `STATE.md`).
 
 ## 2. Core Tech Stack
-- **Runtime:** Node.js (v20+)
+- **Runtime:** Node.js (v18+)
 - **Format:** Native ES Modules (ESM)
 - **Linter:** ESLint (Modern Flat Config)
 - **Testing:** Node.js Native Test Runner (`node:test` and `node:assert`)

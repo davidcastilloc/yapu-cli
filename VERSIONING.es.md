@@ -19,9 +19,9 @@ El desarrollo de Yapu se estructura en torno a las siguientes ramas en el reposi
 
 ## Publicación en el Registro de Paquetes (npm)
 
-La distribución oficial se publica en el registro de paquetes `npm` bajo el nombre `yapu-cli`:
+La distribución oficial se publica en el registro de paquetes `npm` bajo el nombre `@davidsd/yapu-cli`:
 
 ```bash
 # Instalación estable recomendada
-npm install -g yapu-cli
+npm install -g @davidsd/yapu-cli
 ```
