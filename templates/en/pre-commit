@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import fs from 'node:fs';
 import path from 'node:path';
-import { execSync } from 'node:child_process';
+import { spawnSync } from 'node:child_process';
 
 console.log('🪺 [Yapu Guard] Waking up background guard...');
 console.log('🪺 [Yapu Guard] Analyzing staged diff against PROJECT.md Commandments...\n');
@@ -23,8 +23,11 @@ if (!fs.existsSync(projectMdPath)) {
 // Get staged files
 let stagedFiles = [];
 try {
-    const filesOut = execSync('git diff --cached --name-only', { encoding: 'utf8' });
-    stagedFiles = filesOut.split('\n').map(f => f.trim()).filter(Boolean);
+    const result = spawnSync('git', ['diff', '--cached', '--name-only'], { encoding: 'utf8' });
+    if (result.error || result.status !== 0) {
+        process.exit(0);
+    }
+    stagedFiles = result.stdout.split('\n').map(f => f.trim()).filter(Boolean);
 } catch (_err) {
     process.exit(0);
 }
@@ -81,7 +84,11 @@ for (const file of stagedFiles) {
         // Rule: "Zero external production dependencies"
         if (file === 'package.json') {
             try {
-                const oldContentOut = execSync('git show HEAD:package.json', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'ignore'] });
+                const resultOld = spawnSync('git', ['show', 'HEAD:package.json'], { encoding: 'utf8' });
+                if (resultOld.error || resultOld.status !== 0) {
+                    throw new Error('Could not get old package.json');
+                }
+                const oldContentOut = resultOld.stdout;
                 const oldJson = JSON.parse(oldContentOut);
                 const json = JSON.parse(content);
                 
