@@ -5,7 +5,7 @@ Eres un asistente de programación IA (Cursor, Cline, Windsurf, Antigravity, etc
 ## Tarea 1: Instalación
 Ejecuta el siguiente comando en la terminal para instalar YapuCli globalmente:
 ```bash
-npm install -g yapu-cli
+npm install -g @davidsd/yapu-cli
 ```
 *(Si no tienes permisos globales, puedes usar directamente `npx yapu-cli` en los siguientes pasos).*
 

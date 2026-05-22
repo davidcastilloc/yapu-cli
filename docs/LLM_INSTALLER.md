@@ -5,7 +5,7 @@ You are an AI coding assistant (Cursor, Cline, Windsurf, Antigravity, etc.). You
 ## Task 1: Installation
 Execute the following command in the terminal to install YapuCli globally:
 ```bash
-npm install -g yapu-cli
+npm install -g @davidsd/yapu-cli
 ```
 *(If you lack global permissions, you can just use `npx yapu-cli` for the following steps).*
 

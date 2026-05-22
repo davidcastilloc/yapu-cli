@@ -19,7 +19,7 @@ Conectado directamente al brain de Antigravity.
 ## 🚀 Instalación
 
 ```bash
-npm install -g yapu-cli
+npm install -g @davidsd/yapu-cli
 ```
 
 **Zero dependencies** — solo `node:fs` y `node:path`.

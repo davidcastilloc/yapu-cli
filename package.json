@@ -1,5 +1,5 @@
 {
-  "name": "yapu-cli",
+  "name": "@davidsd/yapu-cli",
   "version": "1.0.0",
   "description": "Un framework de ingeniería de contexto y estructuración de memoria estática para Antigravity CLI. El nido que sostiene a Antigravity en el aire.",
   "main": "index.js",
