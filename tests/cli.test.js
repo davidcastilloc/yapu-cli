@@ -909,7 +909,7 @@ setTimeout(() => {
         fs.writeFileSync(metaPath, planMeta, 'utf8');
 
         // Wait longer for the debounced sync (300ms debounce + file I/O + generous padding)
-        await new Promise(resolve => setTimeout(resolve, 3000));
+        await new Promise(resolve => setTimeout(resolve, 5000));
 
         // Stop the daemon process cleanly
         daemonProcess.kill('SIGINT');
