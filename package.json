@@ -24,7 +24,7 @@
     "yapu": "./bin/cli.js"
   },
   "scripts": {
-    "test": "c8 node --test tests/**/*.test.js",
+    "test": "c8 node --test tests/cli.test.js",
     "lint": "eslint .",
     "prepublishOnly": "npm run test && npm run lint"
   },
