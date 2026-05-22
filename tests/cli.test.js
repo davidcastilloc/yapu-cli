@@ -439,4 +439,698 @@ Blabla`;
         assert.ok(output.includes('Anti-patrón detectado: Placeholder sin resolver'), 'Should detect TODO');
         assert.ok(output.includes('Anti-patrón detectado: No hay tareas activas'), 'Should detect empty tasks');
     });
+
+    test('yapu swarm se muestra en el menu de ayuda en espanol e ingles', () => {
+        // Spanish help
+        const outputEs = execSync(`node ${cliPath} --help`, {
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+        assert.ok(outputEs.includes('yapu swarm'), 'Debería incluir el comando yapu swarm');
+        assert.ok(outputEs.includes('Orquestación paralela de subagentes'), 'Debería incluir la descripción en español');
+
+        // English help
+        const outputEn = execSync(`node ${cliPath} --help`, {
+            env: { ...process.env, YAPU_LANG: 'en' },
+            encoding: 'utf8'
+        });
+        assert.ok(outputEn.includes('yapu swarm'), 'Should include yapu swarm command');
+        assert.ok(outputEn.includes('Parallel orchestration of subagents'), 'Should include description in English');
+    });
+
+    test('yapu swarm falla elegantemente si no existe STATE.md', () => {
+        const testDirSwarmFail = path.join(tempDir, 'yapu-swarm-fail');
+        fs.mkdirSync(testDirSwarmFail, { recursive: true });
+
+        try {
+            execSync(`node ${cliPath} swarm`, {
+                cwd: testDirSwarmFail,
+                env: { ...process.env, YAPU_LANG: 'es' },
+                encoding: 'utf8',
+                stdio: 'pipe'
+            });
+            assert.fail('Should have failed');
+        } catch (err) {
+            assert.ok(err.stderr.includes('No se encontró STATE.md'), 'Debería indicar que no se encontró el archivo de estado');
+        }
+    });
+
+    test('yapu swarm termina exitosamente si no hay tareas pendientes', () => {
+        const testDirSwarmEmpty = path.join(tempDir, 'yapu-swarm-empty');
+        fs.mkdirSync(testDirSwarmEmpty, { recursive: true });
+
+        // Initialize first
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirSwarmEmpty,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        // Set all tasks in STATE.md to completed [x]
+        const statePath = path.join(testDirSwarmEmpty, '.planning', 'STATE.md');
+        const stateContent = `# ESTADO ACTUAL
+
+**FASE ACTIVA:** Fase de Diseño
+
+## Tareas de la Fase Actual
+- [x] **T1: Implement login**
+  * Files: \`login.js\`
+  * Dependency: none
+`;
+        fs.writeFileSync(statePath, stateContent, 'utf8');
+
+        // Copy STATE.md to root
+        fs.copyFileSync(statePath, path.join(testDirSwarmEmpty, 'STATE.md'));
+
+        // Run yapu swarm
+        const output = execSync(`node ${cliPath} swarm`, {
+            cwd: testDirSwarmEmpty,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(output.includes('No se encontraron tareas pendientes para ejecutar.'), 'Debería reportar que no hay tareas pendientes');
+    });
+
+    test('yapu swarm detecta y lee PLAN.md si STATE.md no existe', () => {
+        const testDirSwarmPlanFallback = path.join(tempDir, 'yapu-swarm-plan-fallback');
+        fs.mkdirSync(testDirSwarmPlanFallback, { recursive: true });
+
+        // Initialize first
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirSwarmPlanFallback,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        // Delete STATE.md files
+        fs.rmSync(path.join(testDirSwarmPlanFallback, '.planning', 'STATE.md'), { force: true });
+        fs.rmSync(path.join(testDirSwarmPlanFallback, 'STATE.md'), { force: true });
+
+        // Create .planning/PLAN.md with no pending tasks (all [x])
+        const customPlanContent = `# PLAN DE TRABAJO
+
+**FASE ACTIVA:** Fase de Pruebas
+
+## Tareas de la Fase Actual
+- [x] **T1: Implement something**
+  * Files: \`somefile.txt\`
+  * Dependency: none
+`;
+        const planPath = path.join(testDirSwarmPlanFallback, '.planning', 'PLAN.md');
+        fs.writeFileSync(planPath, customPlanContent, 'utf8');
+
+        // Run yapu swarm
+        const output = execSync(`node ${cliPath} swarm`, {
+            cwd: testDirSwarmPlanFallback,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(output.includes('No se encontraron tareas pendientes para ejecutar.'), 'Debería reportar que no hay tareas pendientes leyendo PLAN.md');
+    });
+
+    test('yapu swarm ejecuta tareas respetando concurrencia, dependencias y solapamiento de archivos', () => {
+        const testDirSwarm = path.join(tempDir, 'yapu-swarm-exec');
+        fs.mkdirSync(testDirSwarm, { recursive: true });
+
+        // 1. Initialize git and yapu
+        execSync('git init', { cwd: testDirSwarm, stdio: 'ignore' });
+        execSync('git config user.name "Swarm Test"', { cwd: testDirSwarm, stdio: 'ignore' });
+        execSync('git config user.email "swarm@yapu.cli"', { cwd: testDirSwarm, stdio: 'ignore' });
+
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirSwarm,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        execSync('git add .', { cwd: testDirSwarm });
+        execSync('git commit -m "initial commit"', { cwd: testDirSwarm, stdio: 'ignore' });
+
+        // 2. Create mock bin/antigravity
+        const mockBinDir = path.join(testDirSwarm, 'bin');
+        fs.mkdirSync(mockBinDir, { recursive: true });
+        const mockExePath = path.join(mockBinDir, 'antigravity');
+
+        const mockExeContent = `#!/usr/bin/env node
+const fs = require('fs');
+
+let taskId = 'unknown';
+for (const arg of process.argv) {
+    if (arg.includes('task-') || arg.includes('T')) {
+        const match = arg.match(/task-(T\\d+)|(T\\d+)/);
+        if (match) {
+            taskId = match[1] || match[2];
+        }
+    }
+}
+
+const logFilePath = process.env.SWARM_LOG_FILE;
+if (logFilePath) {
+    fs.appendFileSync(logFilePath, \`START:\${taskId}\\n\`, 'utf8');
+}
+
+// Touches files to mock changes
+const fileArgs = [];
+for (let i = 0; i < process.argv.length; i++) {
+    if (process.argv[i] === '-a') {
+        fileArgs.push(process.argv[i+1]);
+    }
+}
+
+fileArgs.forEach(f => {
+    try {
+        fs.writeFileSync(f, 'modified by subagent', 'utf8');
+    } catch (e) {}
 });
+
+const delay = parseInt(process.env.SWARM_DELAY || '100', 10);
+setTimeout(() => {
+    if (logFilePath) {
+        fs.appendFileSync(logFilePath, \`END:\${taskId}\\n\`, 'utf8');
+    }
+    process.exit(0);
+}, delay);
+`;
+
+        fs.writeFileSync(mockExePath, mockExeContent, 'utf8');
+        fs.chmodSync(mockExePath, 0o755);
+
+        if (process.platform === 'win32') {
+            fs.writeFileSync(mockExePath + '.cmd', `@node "${mockExePath}" %*`, 'utf8');
+        }
+
+        // Create the files that will be touched by tasks so spawn doesn't fail
+        fs.writeFileSync(path.join(testDirSwarm, 'file1.txt'), 'content', 'utf8');
+        fs.writeFileSync(path.join(testDirSwarm, 'file2.txt'), 'content', 'utf8');
+        fs.writeFileSync(path.join(testDirSwarm, 'shared.txt'), 'content', 'utf8');
+        execSync('git add .', { cwd: testDirSwarm });
+        execSync('git commit -m "add files"', { cwd: testDirSwarm, stdio: 'ignore' });
+
+        // 3. Create STATE.md with T1, T2, T3, T4
+        const statePath = path.join(testDirSwarm, '.planning', 'STATE.md');
+        const stateContent = `# ESTADO ACTUAL
+
+**FASE ACTIVA:** Fase de Pruebas
+
+## Tareas de la Fase Actual
+- [ ] **T1: Task One**
+  * Files: \`file1.txt\`
+  * Dependency: none
+- [ ] **T2: Task Two**
+  * Files: \`file2.txt\`
+  * Dependency: \`T1\`
+- [ ] **T3: Task Three**
+  * Files: \`shared.txt\`
+  * Dependency: none
+- [ ] **T4: Task Four**
+  * Files: \`shared.txt\`
+  * Dependency: none
+`;
+        fs.writeFileSync(statePath, stateContent, 'utf8');
+        fs.copyFileSync(statePath, path.join(testDirSwarm, 'STATE.md'));
+
+        // 4. Run yapu swarm with mock executable in PATH
+        const logFilePath = path.join(testDirSwarm, 'swarm.log');
+        const newPath = mockBinDir + path.delimiter + process.env.PATH;
+
+        const output = execSync(`node ${cliPath} swarm`, {
+            cwd: testDirSwarm,
+            env: {
+                ...process.env,
+                PATH: newPath,
+                SWARM_LOG_FILE: logFilePath,
+                SWARM_DELAY: '150',
+                YAPU_LANG: 'es'
+            },
+            encoding: 'utf8'
+        });
+
+        // Verify output messages
+        assert.ok(output.includes('Iniciando Yapu Swarm'), 'Should output swarm initiation message');
+        assert.ok(output.includes('¡Todas las tareas se completaron exitosamente!'), 'Should output final success summary');
+
+        // 5. Read swarm.log and assert sequence
+        assert.ok(fs.existsSync(logFilePath), 'swarm.log should exist');
+        const logContent = fs.readFileSync(logFilePath, 'utf8');
+        const events = logContent.split('\n').filter(Boolean);
+
+        console.log('Swarm log events:', events);
+
+        // Find positions
+        const t1Start = events.indexOf('START:T1');
+        const t1End = events.indexOf('END:T1');
+        const t2Start = events.indexOf('START:T2');
+        const t2End = events.indexOf('END:T2');
+        const t3Start = events.indexOf('START:T3');
+        const t3End = events.indexOf('END:T3');
+        const t4Start = events.indexOf('START:T4');
+        const t4End = events.indexOf('END:T4');
+
+        // Assert T2 starts after T1 ends
+        assert.ok(t1Start < t1End, 'T1 end after start');
+        assert.ok(t1End < t2Start, 'T2 must start after T1 ends');
+        assert.ok(t2Start < t2End, 'T2 end after start');
+
+        // Assert T3 and T4 do not overlap (since both touch shared.txt, one must end before the other starts)
+        const t3T4Overlap = (t3Start < t4End && t4Start < t3End);
+        assert.ok(!t3T4Overlap, 'T3 and T4 must not run concurrently due to file overlap');
+    });
+
+    test('yapu snapshot y yapu rewind funcionan perfectamente en conjunto', () => {
+        const testDirTravel = path.join(tempDir, 'yapu-time-travel');
+        fs.mkdirSync(testDirTravel, { recursive: true });
+
+        // Initialize git
+        execSync('git init', { cwd: testDirTravel, stdio: 'ignore' });
+        execSync('git config user.name "Yapu Test"', { cwd: testDirTravel, stdio: 'ignore' });
+        execSync('git config user.email "test@yapu.cli"', { cwd: testDirTravel, stdio: 'ignore' });
+
+        // Initialize yapu
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirTravel,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        // Commit initial state
+        execSync('git add .', { cwd: testDirTravel });
+        execSync('git commit -m "initial commit"', { cwd: testDirTravel, stdio: 'ignore' });
+
+        // 1. Create a custom file in .planning/
+        const customFilePath = path.join(testDirTravel, '.planning', 'custom-memory.md');
+        fs.writeFileSync(customFilePath, 'Original Context Memory', 'utf8');
+
+        // 2. Take a snapshot
+        const snapshotOut = execSync(`node ${cliPath} snapshot`, {
+            cwd: testDirTravel,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+        assert.ok(snapshotOut.includes('Snapshot del contexto creado con éxito'), 'Should output success message');
+
+        // Verify snapshot file exists
+        const snapshotsDir = path.join(testDirTravel, '.planning', '.snapshots');
+        assert.ok(fs.existsSync(snapshotsDir), '.snapshots dir should exist');
+        const files = fs.readdirSync(snapshotsDir);
+        assert.strictEqual(files.length, 1, 'Should have exactly 1 snapshot file');
+        assert.ok(files[0].startsWith('snapshot-') && files[0].endsWith('.json.gz'), 'Filename should match pattern');
+
+        // 3. Make a breaking code change, commit it, and corrupt the context
+        const codeFilePath = path.join(testDirTravel, 'code.js');
+        fs.writeFileSync(codeFilePath, 'console.log("bad code");', 'utf8');
+        execSync('git add code.js', { cwd: testDirTravel });
+        execSync('git commit -m "breaking commit"', { cwd: testDirTravel, stdio: 'ignore' });
+
+        fs.writeFileSync(customFilePath, 'Corrupted Context Memory', 'utf8');
+
+        // 4. Run yapu rewind (piping 's' or 'y' for confirmation)
+        const rewindOut = execSync(`echo s | node ${cliPath} rewind`, {
+            cwd: testDirTravel,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(rewindOut.includes('Restaurando archivos de contexto'), 'Should output restoration status');
+        assert.ok(rewindOut.includes('Sincronizando código en Git al commit'), 'Should output git restoration status');
+        assert.ok(rewindOut.includes('Time-Travel completado con éxito'), 'Should output final success');
+
+        // 5. Verify both git code and context memory were restored
+        assert.ok(!fs.existsSync(codeFilePath), 'git code should be rewound (code.js should not exist)');
+        const restoredContent = fs.readFileSync(customFilePath, 'utf8');
+        assert.strictEqual(restoredContent, 'Original Context Memory', 'Context memory file should be restored to original state');
+    });
+
+    test('yapu profile se muestra en el menu de ayuda en espanol e ingles', () => {
+        // Spanish help
+        const outputEs = execSync(`node ${cliPath} --help`, {
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+        assert.ok(outputEs.includes('yapu profile'), 'Debería incluir el comando yapu profile');
+        assert.ok(outputEs.includes('Diagnóstico de volumen y tokens'), 'Debería incluir la descripción en español');
+
+        // English help
+        const outputEn = execSync(`node ${cliPath} --help`, {
+            env: { ...process.env, YAPU_LANG: 'en' },
+            encoding: 'utf8'
+        });
+        assert.ok(outputEn.includes('yapu profile'), 'Should include yapu profile command');
+        assert.ok(outputEn.includes('Diagnostics of context volume and tokens'), 'Should include description in English');
+    });
+
+    test('yapu profile escanea archivos y calcula el volumen de tokens correctamente', () => {
+        const testDirProfile = path.join(tempDir, 'yapu-profile-test');
+        fs.mkdirSync(testDirProfile, { recursive: true });
+
+        // Initialize yapu in clean repo
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirProfile,
+            env: { ...process.env, YAPU_LANG: 'es' }
+        });
+
+        // Run profile on clean repo
+        const outputClean = execSync(`node ${cliPath} profile`, {
+            cwd: testDirProfile,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(outputClean.includes('YAPU CONTEXT PROFILER'), 'Should print profiler title');
+        assert.ok(outputClean.includes('Archivo / Categoría'), 'Should print table headers in Spanish');
+        assert.ok(outputClean.includes('PROJECT.md'), 'Should list PROJECT.md');
+        assert.ok(outputClean.includes('ROADMAP.md'), 'Should list ROADMAP.md');
+        assert.ok(outputClean.includes('STATE.md'), 'Should list STATE.md');
+        assert.ok(outputClean.includes('[ PESO TOTAL DEL CONTEXTO ]'), 'Should print cumulative context weight');
+        assert.ok(outputClean.includes('OK'), 'Should print status OK');
+        assert.ok(outputClean.includes('colonia está esbelta y ágil'), 'Should recommend lean status');
+
+        // Add a giant mock file in .planning/phases/bloated.md (e.g. 50KB = 51200 characters)
+        const phasesDir = path.join(testDirProfile, '.planning', 'phases');
+        fs.mkdirSync(phasesDir, { recursive: true });
+
+        const giantContent = 'A'.repeat(51200); // 50 KB -> Math.ceil(51200/4) = 12800 tokens (> 10000 -> CRITICAL)
+        fs.writeFileSync(path.join(phasesDir, 'bloated-phase-with-a-very-long-name-to-test-truncation.md'), giantContent, 'utf8');
+
+        // Run profile on bloated repo
+        const outputBloated = execSync(`node ${cliPath} profile`, {
+            cwd: testDirProfile,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(outputBloated.includes('CRITICAL 🚨'), 'Should print status CRITICAL');
+        assert.ok(outputBloated.includes('ALERTA CRÍTICA DE CONTEXTO'), 'Should recommend immediate gc or archive');
+        assert.ok(outputBloated.includes('...-long-name-to-test-truncation.md'), 'Should truncate long file names using middle-ellipsis');
+    });
+
+    test('yapu daemon se muestra en el menu de ayuda en espanol e ingles', () => {
+        // Spanish help
+        const outputEs = execSync(`node ${cliPath} --help`, {
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+        assert.ok(outputEs.includes('yapu daemon'), 'Debería incluir el comando yapu daemon');
+        assert.ok(outputEs.includes('Sincroniza en tiempo real'), 'Debería incluir la descripción en español');
+
+        // English help
+        const outputEn = execSync(`node ${cliPath} --help`, {
+            env: { ...process.env, YAPU_LANG: 'en' },
+            encoding: 'utf8'
+        });
+        assert.ok(outputEn.includes('yapu daemon'), 'Should include yapu daemon command');
+        assert.ok(outputEn.includes('Synchronizes AI Brain artifacts in real-time'), 'Should include description in English');
+    });
+
+    test('yapu daemon y yapu watch sincronizan en tiempo real', async () => {
+        const testDirDaemon = path.join(tempDir, 'yapu-daemon-test');
+        fs.mkdirSync(testDirDaemon, { recursive: true });
+
+        // Initialize yapu in clean repo
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirDaemon,
+            env: { ...process.env, YAPU_LANG: 'es' }
+        });
+
+        const mockBrainDir = path.join(testDirDaemon, 'mock-brain');
+        fs.mkdirSync(mockBrainDir, { recursive: true });
+
+        // Spawn the daemon watching mockBrainDir
+        const { spawn } = await import('node:child_process');
+        const daemonProcess = spawn('node', [cliPath, 'daemon', '--brain-path', mockBrainDir], {
+            cwd: testDirDaemon,
+            env: { ...process.env, YAPU_LANG: 'es' },
+            stdio: 'pipe'
+        });
+
+        // Let the daemon start and print its watching status
+        let daemonOutput = '';
+        daemonProcess.stdout.on('data', (data) => {
+            daemonOutput += data.toString();
+        });
+
+        // Wait a small moment to ensure the daemon is running and watching
+        await new Promise(resolve => setTimeout(resolve, 600));
+
+        // Create an artifact in mockBrainDir
+        const mdPath = path.join(mockBrainDir, 'implementation_plan.md');
+        const metaPath = path.join(mockBrainDir, 'implementation_plan.md.metadata.json');
+
+        const planContent = '# Real-time Plan Content';
+        const planMeta = JSON.stringify({
+            artifactType: 'implementation_plan',
+            summary: 'A plan written in real-time',
+            updatedAt: new Date().toISOString()
+        });
+
+        fs.writeFileSync(mdPath, planContent, 'utf8');
+        fs.writeFileSync(metaPath, planMeta, 'utf8');
+
+        // Wait for the debounced sync (300ms + 500ms padding)
+        await new Promise(resolve => setTimeout(resolve, 1000));
+
+        // Stop the daemon process cleanly
+        daemonProcess.kill('SIGINT');
+
+        // Verify that the plan was successfully synchronized to .planning/current-plan.md
+        const destPath = path.join(testDirDaemon, '.planning', 'current-plan.md');
+        assert.ok(fs.existsSync(destPath), 'current-plan.md should have been synced');
+        assert.strictEqual(fs.readFileSync(destPath, 'utf8'), planContent, 'content should match');
+
+        // Also assert that the CLI printed the sync message
+        assert.ok(daemonOutput.includes('Iniciando Yapu Daemon'), 'Should print startup');
+        assert.ok(daemonOutput.includes('Observando cambios en'), 'Should print watching directory');
+        assert.ok(daemonOutput.includes('Artefacto "implementation_plan" sincronizado con éxito'), 'Should print sync confirmation');
+    });
+
+    test('yapu branch y yapu merge se muestran en el menu de ayuda en espanol e ingles', () => {
+        // Spanish help
+        const outputEs = execSync(`node ${cliPath} --help`, {
+            env: { ...process.env, YAPU_LANG: 'es' },
+            encoding: 'utf8'
+        });
+        assert.ok(outputEs.includes('yapu branch'), 'Debería incluir el comando yapu branch');
+        assert.ok(outputEs.includes('yapu merge'), 'Debería incluir el comando yapu merge');
+        assert.ok(outputEs.includes('Crea, cambia o lista ramas del multiverso'), 'Debería incluir la descripción de branch en español');
+        assert.ok(outputEs.includes('Fusiona código y semánticamente el contexto'), 'Debería incluir la descripción de merge en español');
+
+        // English help
+        const outputEn = execSync(`node ${cliPath} --help`, {
+            env: { ...process.env, YAPU_LANG: 'en' },
+            encoding: 'utf8'
+        });
+        assert.ok(outputEn.includes('yapu branch'), 'Should include yapu branch command');
+        assert.ok(outputEn.includes('yapu merge'), 'Should include yapu merge command');
+        assert.ok(outputEn.includes('Creates, switches, or lists context multiverse'), 'Should include branch description in English');
+        assert.ok(outputEn.includes('Merges code and semantically unifies'), 'Should include merge description in English');
+    });
+
+    test('yapu branch previene cambiar de rama si hay cambios sin confirmar en Git', () => {
+        const testDirDirty = path.join(tempDir, 'yapu-dirty-test');
+        fs.mkdirSync(testDirDirty, { recursive: true });
+
+        // Init git
+        execSync('git init', { cwd: testDirDirty });
+        execSync('git config user.name "Yapu Test"', { cwd: testDirDirty });
+        execSync('git config user.email "test@yapu.io"', { cwd: testDirDirty });
+
+        // Init yapu
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirDirty,
+            env: { ...process.env, YAPU_LANG: 'es' }
+        });
+
+        // Commit initial files
+        execSync('git add .', { cwd: testDirDirty });
+        execSync('git commit -m "initial commit"', { cwd: testDirDirty });
+
+        // Create a dirty change
+        fs.writeFileSync(path.join(testDirDirty, 'PROJECT.md'), 'dirty content', 'utf8');
+
+        // Attempt branch switch and expect failure
+        assert.throws(() => {
+            execSync(`node ${cliPath} branch my-feature`, {
+                cwd: testDirDirty,
+                env: { ...process.env, YAPU_LANG: 'es' },
+                stdio: 'pipe'
+            });
+        }, /Tienes cambios sin confirmar/);
+    });
+
+    test('yapu branch cambia, guarda y restaura el contexto del multiverso', () => {
+        const testDirBranch = path.join(tempDir, 'yapu-multiverse-branch-test');
+        fs.mkdirSync(testDirBranch, { recursive: true });
+
+        // Init git
+        execSync('git init', { cwd: testDirBranch });
+        execSync('git config user.name "Yapu Test"', { cwd: testDirBranch });
+        execSync('git config user.email "test@yapu.io"', { cwd: testDirBranch });
+        execSync('git config commit.gpgsign false', { cwd: testDirBranch });
+
+        // Init yapu
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirBranch,
+            env: { ...process.env, YAPU_LANG: 'en' }
+        });
+
+        // Create an initial commit on master/main
+        execSync('git checkout -b main', { cwd: testDirBranch, stdio: 'pipe' });
+        execSync('git add .', { cwd: testDirBranch });
+        execSync('git commit -m "Initial commit on main"', { cwd: testDirBranch });
+
+        // Now create a custom file in the main context
+        const mainPlanningDir = path.join(testDirBranch, '.planning');
+        fs.writeFileSync(path.join(mainPlanningDir, 'main-only.txt'), 'hello main', 'utf8');
+
+        // Switch context/branch using yapu branch to experiment-1
+        const switchOutput = execSync(`node ${cliPath} branch experiment-1`, {
+            cwd: testDirBranch,
+            env: { ...process.env, YAPU_LANG: 'en' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(switchOutput.includes('Synchronizing context multiverse'), 'Should start sync');
+        assert.ok(switchOutput.includes('Saved context state for branch "main"'), 'Should save current');
+        assert.ok(switchOutput.includes('Activated Git branch "experiment-1"'), 'Should checkout experimental');
+
+        // Inside experiment-1, the inherited file exists. Let's delete it and create an experimental file!
+        const mainOnlyFile = path.join(mainPlanningDir, 'main-only.txt');
+        if (fs.existsSync(mainOnlyFile)) {
+            fs.unlinkSync(mainOnlyFile);
+        }
+        fs.writeFileSync(path.join(mainPlanningDir, 'exp-only.txt'), 'hello experiment', 'utf8');
+
+        // Commit the experimental code change to make Git happy
+        execSync('git add .', { cwd: testDirBranch });
+        execSync('git commit -m "Commit on experiment"', { cwd: testDirBranch });
+
+        // Switch back to main
+        const backOutput = execSync(`node ${cliPath} branch main`, {
+            cwd: testDirBranch,
+            env: { ...process.env, YAPU_LANG: 'en' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(backOutput.includes('Saved context state for branch "experiment-1"'), 'Should save current experimental context');
+        assert.ok(backOutput.includes('Restored context state for branch "main"'), 'Should restore main context');
+
+        // Verify main context is restored: main-only.txt exists, exp-only.txt is deleted!
+        assert.ok(fs.existsSync(path.join(mainPlanningDir, 'main-only.txt')), 'main-only.txt should be restored');
+        assert.ok(!fs.existsSync(path.join(mainPlanningDir, 'exp-only.txt')), 'exp-only.txt should not leak to main');
+
+        // Switch to experiment-1 again
+        execSync(`node ${cliPath} branch experiment-1`, {
+            cwd: testDirBranch,
+            env: { ...process.env, YAPU_LANG: 'en' }
+        });
+
+        // Verify experimental context is restored: main-only.txt is deleted, exp-only.txt exists!
+        assert.ok(!fs.existsSync(path.join(mainPlanningDir, 'main-only.txt')), 'main-only.txt should be gone on experimental branch');
+        assert.ok(fs.existsSync(path.join(mainPlanningDir, 'exp-only.txt')), 'exp-only.txt should be restored');
+    });
+
+    test('yapu merge fusiona codigo, tareas, aprendizajes y archivos custom del multiverso', () => {
+        const testDirMerge = path.join(tempDir, 'yapu-multiverse-merge-test');
+        fs.mkdirSync(testDirMerge, { recursive: true });
+
+        // Init git
+        execSync('git init', { cwd: testDirMerge });
+        execSync('git config user.name "Yapu Test"', { cwd: testDirMerge });
+        execSync('git config user.email "test@yapu.io"', { cwd: testDirMerge });
+        execSync('git config commit.gpgsign false', { cwd: testDirMerge });
+
+        // Init yapu
+        execSync(`node ${cliPath} init`, {
+            cwd: testDirMerge,
+            env: { ...process.env, YAPU_LANG: 'en' }
+        });
+
+        // Ensure active branch is main
+        execSync('git checkout -b main', { cwd: testDirMerge, stdio: 'pipe' });
+
+        // Modify STATE.md in main with some tasks
+        const statePath = path.join(testDirMerge, 'STATE.md');
+        fs.writeFileSync(statePath, [
+            '# STATE',
+            '- [ ] Task 1: Complete the core system setup',
+            '- [ ] Task 2: Setup internationalization support',
+            '- [ ] Task 3: Implement multithreaded routing'
+        ].join('\n'), 'utf8');
+
+        // Commit main files
+        execSync('git add .', { cwd: testDirMerge });
+        execSync('git commit -m "Setup main branch state"', { cwd: testDirMerge });
+
+        // Switch to experiment-2 using yapu branch
+        execSync(`node ${cliPath} branch experiment-2`, {
+            cwd: testDirMerge,
+            env: { ...process.env, YAPU_LANG: 'en' }
+        });
+
+        // In experiment-2, complete Task 1 and Task 2, and add a learning file and a custom sketch file
+        fs.writeFileSync(statePath, [
+            '# STATE',
+            '- [x] Task 1: Complete the core system setup',
+            '- [x] Task 2: Setup internationalization support',
+            '- [ ] Task 3: Implement multithreaded routing'
+        ].join('\n'), 'utf8');
+
+        // Create yapu-learnings.md
+        fs.writeFileSync(path.join(testDirMerge, 'yapu-learnings.md'), [
+            '# Learnings',
+            '- Learning 1: Found out that zlib gzip is super fast.',
+            '- Learning 2: Git porcelain status is perfect for dirty checks.'
+        ].join('\n'), 'utf8');
+
+        // Create a custom sketch planning file
+        const sketchDir = path.join(testDirMerge, '.planning', 'phases');
+        fs.mkdirSync(sketchDir, { recursive: true });
+        fs.writeFileSync(path.join(sketchDir, 'experiment-sketch.md'), 'My sketch notes', 'utf8');
+
+        // Commit experiment-2 changes
+        execSync('git add .', { cwd: testDirMerge });
+        execSync('git commit -m "Complete experiments"', { cwd: testDirMerge });
+
+        // Switch back to main using yapu branch
+        execSync(`node ${cliPath} branch main`, {
+            cwd: testDirMerge,
+            env: { ...process.env, YAPU_LANG: 'en' }
+        });
+
+        // Now merge experiment-2 into main using yapu merge
+        const mergeOutput = execSync(`node ${cliPath} merge experiment-2`, {
+            cwd: testDirMerge,
+            env: { ...process.env, YAPU_LANG: 'en' },
+            encoding: 'utf8'
+        });
+
+        assert.ok(mergeOutput.includes('Initiating multiverse merge (branch "experiment-2")'), 'Should start merge output');
+        assert.ok(mergeOutput.includes('Updated 2 completed tasks in STATE.md'), 'Should report 2 completed tasks updated');
+        assert.ok(mergeOutput.includes('Integrated new learnings in yapu-learnings.md'), 'Should report learnings integrated');
+        assert.ok(mergeOutput.includes('Merge completed successfully!'), 'Should report successful merge');
+
+        // Verify task checking in active STATE.md
+        const activeStateContent = fs.readFileSync(statePath, 'utf8');
+        assert.ok(activeStateContent.includes('- [x] Task 1: Complete'), 'Task 1 should be checked off');
+        assert.ok(activeStateContent.includes('- [x] Task 2: Setup'), 'Task 2 should be checked off');
+        assert.ok(activeStateContent.includes('- [ ] Task 3: Implement'), 'Task 3 should remain pending');
+
+        // Verify learnings harvesting in active yapu-learnings.md
+        const activeLearningsPath = path.join(testDirMerge, 'yapu-learnings.md');
+        assert.ok(fs.existsSync(activeLearningsPath), 'yapu-learnings.md should exist');
+        const activeLearningsContent = fs.readFileSync(activeLearningsPath, 'utf8');
+        assert.ok(activeLearningsContent.includes('## 🧪 Learnings from Experiment: experiment-2'), 'Should include dedicated header');
+        assert.ok(activeLearningsContent.includes('- Learning 1:'), 'Should include experimental learning 1');
+
+        // Verify custom sketch copy
+        const copiedSketchFile = path.join(sketchDir, 'experiment-sketch.md');
+        assert.ok(fs.existsSync(copiedSketchFile), 'Custom sketch file should have been copied over');
+        assert.strictEqual(fs.readFileSync(copiedSketchFile, 'utf8'), 'My sketch notes');
+
+        // Verify context state file of experiment-2 is deleted/cleaned up
+        const stateFile = path.join(testDirMerge, '.planning', '.branches', 'branch-experiment-2.json.gz');
+        assert.ok(!fs.existsSync(stateFile), 'Source branch state file should be deleted');
+    });
+});
+
