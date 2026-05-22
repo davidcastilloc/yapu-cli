@@ -1433,7 +1433,6 @@ ${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
 
         // Resolve the AI provider to use for spawning subagents
         let swarmProvider = null;
-        let swarmProviderKey = 'antigravity';
         try {
             const { resolveProvider } = await import('../lib/providers.js');
             // Check for --provider flag override
@@ -1451,7 +1450,6 @@ ${logContent.substring(0, 5000)} // Truncated to 5000 chars for context size
 
             const resolved = resolveProvider(providerOverride || configProvider);
             swarmProvider = resolved.config;
-            swarmProviderKey = resolved.key;
         } catch {
             // Fallback to hardcoded antigravity if providers.js is unavailable
             swarmProvider = {
@@ -1891,19 +1889,23 @@ Instructions:
 
     const homeDir = os.homedir();
     let brainBaseDir;
-    try {
-        const { resolveProvider: rp } = await import('../lib/providers.js');
-        let configProvider = null;
-        const cfgPath = path.join(targetDir, '.planning', 'config.json');
-        if (fs.existsSync(cfgPath)) {
-            try {
-                const cfgObj = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
-                configProvider = cfgObj.workflow?.provider || null;
-            } catch { /* skip */ }
+    if (!brainPath) {
+        try {
+            const { resolveProvider: rp } = await import('../lib/providers.js');
+            let configProvider = null;
+            const cfgPath = path.join(targetDir, '.planning', 'config.json');
+            if (fs.existsSync(cfgPath)) {
+                try {
+                    const cfgObj = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+                    configProvider = cfgObj.workflow?.provider || null;
+                } catch { /* skip */ }
+            }
+            const resolved = rp(configProvider);
+            brainBaseDir = resolved.config.brainPath(homeDir);
+        } catch {
+            brainBaseDir = path.join(homeDir, '.gemini', 'antigravity-cli', 'brain');
         }
-        const resolved = rp(configProvider);
-        brainBaseDir = resolved.config.brainPath(homeDir);
-    } catch {
+    } else {
         brainBaseDir = path.join(homeDir, '.gemini', 'antigravity-cli', 'brain');
     }
     const watchDir = brainPath || brainBaseDir;
