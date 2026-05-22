@@ -4,13 +4,17 @@ Para los **"vibe coders"** —desarrolladores que fluyen y construyen a base de 
 
 A continuación, se detalla el ciclo de desarrollo diario utilizando la suite completa de comandos de Yapu.
 
+
+> [!TIP]
+> Cada fase del workflow está diseñada para ser ejecutada por tu IA. Tu rol es supervisar, validar y ajustar — no escribir código manualmente.
+
 ---
 
 ## 1. El Arranque (Setup Mental)
 
 Al iniciar un nuevo proyecto o feature, en lugar de perder 1 hora escribiendo prompts larguísimos para que la IA entienda las reglas de tu arquitectura, simplemente abres la terminal en tu directorio vacío y ejecutas:
 
-```bash
+```termynal
 npx yapu-cli init
 ```
 
@@ -28,7 +32,7 @@ A medida que tu agente empieza a escribir código, leer archivos y proponer camb
 
 Abre una terminal secundaria (idealmente en un monitor anexo) y ejecuta:
 
-```bash
+```termynal
 yapu dash
 ```
 
@@ -75,7 +79,7 @@ Han pasado semanas de intenso desarrollo. Has cerrado múltiples fases. Notas qu
 
 Es hora de hacer limpieza en la memoria del proyecto:
 
-```bash
+```termynal
 yapu gc
 ```
 

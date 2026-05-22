@@ -2,6 +2,10 @@
 
 **YapuCli** es un framework ligero de ingeniería de contexto y meta-prompting diseñado para potenciar la precisión de **Antigravity CLI**. Su propósito es estructurar y delimitar de forma estricta la memoria operativa expuesta a los agentes autónomos de Antigravity para prevenir el fenómeno conocido como **degradación de contexto** (*context rot*).
 
+
+> [!NOTE]
+> La **Tríada de Memoria** (PROJECT.md, STATE.md, ROADMAP.md) es el corazón de YapuCli. Estos tres archivos forman la memoria persistente que las IAs usan para mantener coherencia entre sesiones.
+
 ---
 
 ## 1. El Problema: Degradación de Contexto (Context Rot)

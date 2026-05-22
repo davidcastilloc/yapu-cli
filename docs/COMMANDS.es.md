@@ -2,6 +2,9 @@
 
 Documentación completa de todos los comandos disponibles en YapuCli.
 
+> [!NOTE]
+> Todos los comandos auto-detectan la sesión activa del brain de Antigravity. Usa `--brain-path` para override manual.
+
 ---
 
 ## 1. `yapu init`
@@ -34,7 +37,7 @@ yapu init
 
 ### Ejemplo de salida
 
-```
+```termynal
 🪺 YapuCli - Inicializando proyecto...
 
 ✅ Estructura .planning/ creada
@@ -72,7 +75,7 @@ yapu status
 
 ### Ejemplo de salida
 
-```
+```termynal
 🪺 YapuCli - Estado del Proyecto
 
 📋 Modo operacional: BUILD
@@ -108,7 +111,7 @@ yapu archive
 
 ### Ejemplo de salida
 
-```
+```termynal
 🪺 YapuCli - Archivando tareas completadas
 
 📦 3 tareas archivadas en HISTORY.md
@@ -116,6 +119,10 @@ yapu archive
 
 ✅ Archivo completado.
 ```
+
+
+> [!WARNING]
+> Requiere que `STATE.md` exista y tenga tareas completadas. Ejecuta `yapu init` primero.
 
 ---
 
@@ -139,7 +146,7 @@ yapu install-hooks
 
 ### Ejemplo de salida
 
-```
+```termynal
 🪺 YapuCli - Instalando hooks
 
 ✅ Hook pre-commit instalado en .git/hooks/pre-commit
@@ -147,6 +154,10 @@ yapu install-hooks
 
 El hook validará PROJECT.md en cada commit.
 ```
+
+
+> [!TIP]
+> El hook pre-commit valida las directivas de PROJECT.md antes de cada commit, previniendo violaciones accidentales de las reglas del proyecto.
 
 ---
 
@@ -172,7 +183,7 @@ yapu health
 
 ### Ejemplo de salida
 
-```
+```termynal
 === 🪺 YAPU WORKSPACE HEALTH CHECK ===
 
 [+] Checking core memory files...
@@ -238,7 +249,7 @@ yapu sync [--brain-path <ruta>]
 
 ### Ejemplo de salida
 
-```
+```termynal
 🪺 YapuCli - Sincronizando artefactos
 
 🔄 Leyendo brain: /home/user/.gemini/antigravity-cli/brain/abc123/
@@ -284,7 +295,7 @@ yapu handoff [--brain-path <ruta>]
 
 ### Ejemplo de salida
 
-```
+```termynal
 🪺 YapuCli - Generando handoff
 
 📄 Leyendo estado actual desde .planning/STATE.md...
@@ -332,7 +343,7 @@ yapu brain list [--path <ruta>]
 
 #### Ejemplo de salida
 
-```
+```termynal
 🪺 YapuCli - Brain: Artefactos
 
 📂 Brain: /home/user/.gemini/antigravity-cli/brain/abc123/
@@ -379,7 +390,7 @@ yapu brain log [--path <ruta>] [-n N]
 
 #### Ejemplo de salida
 
-```
+```termynal
 🪺 YapuCli - Brain: Log de conversación
 
 📂 Brain: /home/user/.gemini/antigravity-cli/brain/abc123/
@@ -425,6 +436,9 @@ yapu board [--port N]
   `plan`, `execute`, `status`, `check`, `health`, `sync`, `handoff`, `snapshot`, `gc`, `rescue`.
   Cualquier otro comando retorna `403 Forbidden`.
 
+> [!ATTENTION]
+> Solo los comandos de la lista blanca pueden ejecutarse desde la UI web. Cualquier otro comando retorna `403 Forbidden`.
+
 ### Diseño de la Interfaz
 
 | Panel | Contenido |
@@ -435,7 +449,7 @@ yapu board [--port N]
 
 ### Ejemplo de Salida (Terminal)
 
-```
+```termynal
 🪺 Iniciando Yapu Command Center...
 🌐 C2 escuchando en http://localhost:4040
   → http://localhost:4040
@@ -453,7 +467,7 @@ Al ejecutar `yapu` sin argumentos se muestra la pantalla de ayuda con todos los 
 yapu
 ```
 
-```
+```termynal
 🪺 YapuCli v1.0.0
 
 Uso: yapu <comando> [opciones]

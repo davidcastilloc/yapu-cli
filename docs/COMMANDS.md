@@ -2,6 +2,9 @@
 
 Complete documentation of all available commands in YapuCli.
 
+> [!NOTE]
+> All commands auto-detect the active Antigravity brain session. Use `--brain-path` for manual override.
+
 ---
 
 ## 1. `yapu init`
@@ -34,7 +37,7 @@ yapu init
 
 ### Example Output
 
-```
+```termynal
 🪺 Initializing YapuCli...
 
 ✅ .planning/ directory scaffolded.
@@ -76,7 +79,7 @@ yapu status
 
 ### Example Output
 
-```
+```termynal
 === 🪺 YAPU SYSTEM STATUS ===
 
 [ OPR MODE  ] : FORENSICS
@@ -113,12 +116,16 @@ yapu archive
 
 ### Example Output
 
-```
+```termynal
 🪺 Executing Archiving System (Yapu Context Freeze)...
 
 ✅ Tasks successfully archived in HISTORY.md (3 tasks).
 ✅ STATE.md has been cleaned and prepared for the next phase.
 ```
+
+
+> [!WARNING]
+> Requires `STATE.md` to exist with completed tasks. Run `yapu init` first.
 
 ---
 
@@ -142,11 +149,15 @@ yapu install-hooks
 
 ### Example Output
 
-```
+```termynal
 🪺 Installing Yapu Guard in Git Hooks...
 
 ✅ Yapu Guard: .git/hooks/pre-commit installed successfully.
 ```
+
+
+> [!TIP]
+> The pre-commit hook validates PROJECT.md directives before each commit, preventing accidental policy violations.
 
 ---
 
@@ -172,7 +183,7 @@ yapu health
 
 ### Example Output
 
-```
+```termynal
 === 🪺 YAPU WORKSPACE HEALTH CHECK ===
 
 [+] Checking core memory files...
@@ -227,7 +238,7 @@ yapu check
 
 ### Example Output
 
-```
+```termynal
 === 🪺 YAPU WORKSPACE DIAGNOSTICS (PHASE 5) ===
 
 [+] Scanning memory triad for anti-patterns...
@@ -317,7 +328,7 @@ yapu handoff [--brain-path <path>]
 
 ### Example Output
 
-```
+```termynal
 🪺 Generating handoff for the next session...
 
 ✅ HANDOFF.json generated: .planning/HANDOFF.json
@@ -334,7 +345,9 @@ Inspects the content of an Antigravity brain directory. It has two subcommands: 
 
 ---
 
-### 9.1 `yapu brain list`
+
+<!-- tabs:start -->
+#### **brain list**
 
 Lists the artifacts stored in a brain directory.
 
@@ -362,7 +375,7 @@ yapu brain list [--path <path>]
 
 #### Example Output
 
-```
+```termynal
 === 🪺 YAPU BRAIN INSPECTOR ===
 
 [ ARTIFACTS ] : 3 found
@@ -387,7 +400,7 @@ yapu brain list [--path <path>]
 
 ---
 
-### 9.2 `yapu brain log`
+#### **brain log**
 
 Displays recent conversation log entries.
 
@@ -416,7 +429,7 @@ yapu brain log [--path <path>] [-n N]
 
 #### Example Output
 
-```
+```termynal
 === 🪺 YAPU BRAIN LOG (last 5 entries) ===
 
   👤 [12] USER_INPUT: Implement the authentication endpoint...
@@ -427,6 +440,8 @@ yapu brain log [--path <path>] [-n N]
 
 =================================
 ```
+
+<!-- tabs:end -->
 
 ---
 
@@ -461,6 +476,9 @@ yapu board [--port N]
   `plan`, `execute`, `status`, `check`, `health`, `sync`, `handoff`, `snapshot`, `gc`, `rescue`.
   Any other command returns `403 Forbidden`.
 
+> [!ATTENTION]
+> Only whitelisted commands can be executed from the web UI. Any other command returns `403 Forbidden`.
+
 ### UI Layout
 
 | Panel | Content |
@@ -471,7 +489,7 @@ yapu board [--port N]
 
 ### Example Output (Terminal)
 
-```
+```termynal
 🪺 Starting Yapu Command Center...
 🌐 C2 listening on http://localhost:4040
   → http://localhost:4040
@@ -489,7 +507,7 @@ Executing `yapu` without arguments displays the help screen listing all availabl
 yapu
 ```
 
-```
+```termynal
 🪺 YapuCli Framework
 
 Usage:

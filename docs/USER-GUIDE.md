@@ -2,6 +2,10 @@
 
 This guide will walk you through the steps to install, configure, and interact with the **YapuCli** framework in your development projects using the **Antigravity CLI**.
 
+
+> [!WARNING]
+> Common mistake: Not running `yapu init` before using other commands. Always initialize your project first.
+
 ---
 
 ## 1. Installation and Setup
@@ -9,7 +13,7 @@ This guide will walk you through the steps to install, configure, and interact w
 Yapu is packaged to be installed globally or locally via `npm`.
 
 ### Global Installation (Recommended)
-```bash
+```termynal
 npm install -g yapu-cli
 ```
 
@@ -21,7 +25,7 @@ Once installed, the `yapu` command will be available globally in your terminal.
 
 To prepare your current repository to work under the strict context engineering of Yapu, execute the `init` command at the root of your project:
 
-```bash
+```termynal
 yapu init
 ```
 
@@ -36,6 +40,7 @@ This command creates the framework's infrastructure in your current working dire
    - Dynamically loads and deploys all the meta-prompting workflow files (`yapu-*.md`), references, contexts, and codebase templates.
 
 > [!IMPORTANT]
+> [!WARNING]
 > **Data Protection**: `yapu init` is designed with safety in mind. If files with the same names already exist in your current directory, the CLI will print a warning and skip them to avoid overwriting your previous data or configurations.
 
 ---
